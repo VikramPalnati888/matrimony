@@ -169,6 +169,7 @@ class UserFullDetailsView(APIView):
 			request.POST._mutable = True
 		response = {}
 		data = request.data
+		user_obj = UserBasicDetails.objects.get(user__id = request.user.id)
 		try:
 			if data['image'] == '':
 				del data['image']
