@@ -12,3 +12,13 @@ class UserFullDetailsSerialzers(serializers.ModelSerializer):
 	class Meta:
 		model=UserFullDetails
 		fields = '__all__'
+
+class ViewdDetailsSerialzers(serializers.ModelSerializer):
+	class Meta:
+		model=Viewed_matches
+		fields = '__all__'
+
+class Partner_PreferencesSerialzers(serializers.ModelSerializer):
+	class Meta:
+		model=Partner_Preferences
+		fields = '__all__'

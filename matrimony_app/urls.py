@@ -11,5 +11,8 @@ urlpatterns = [
 				path('logout/',Logout.as_view(), name="user logout"),
 				path('user_full_details/',UserFullDetailsView.as_view(), name="user details"),
 				path('dropdown_list/',droplistDetails.as_view(), name="dropdown list details"),
+				path('new_matches/',NewMatches.as_view(), name="new matches details"),
+				path('viewd_details/',ViewdMatches.as_view(), name="viewd matches details"),
+				path('pp_details/',PPView.as_view(), name="Partner Preferences details"),
 	
 			]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

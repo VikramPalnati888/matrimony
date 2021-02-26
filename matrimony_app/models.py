@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 class UserBasicDetails(models.Model):
 	user = models.OneToOneField(User, null=True, blank=True,on_delete=models.CASCADE)
 	matrimony_id = models.CharField(max_length=20,null=True)
-	name = models.CharField(max_length=20,null=True)
 	phone_number = models.CharField(max_length=20,null=True)
 	
 	class Meta:
@@ -15,33 +14,46 @@ class UserBasicDetails(models.Model):
 
 class UserFullDetails(models.Model):
 	basic_details = models.ForeignKey(UserBasicDetails, on_delete=models.CASCADE)
+	name = models.CharField(max_length=20,null=True)
 	gender = models.CharField(max_length=20,null=True)
 	dateofbirth = models.CharField(max_length=20,null=True)
 	image = models.ImageField(upload_to='profile_pic/')
 
 #basic details
-	height = models.CharField(max_length=100,null=True)
 	age	= models.CharField(max_length=100,null=True)
-	marital_status	= models.CharField(max_length=100,null=True)
+	height = models.CharField(max_length=100,null=True)
+	physical_status = models.CharField(max_length=100,null=True)
+	weight	= models.CharField(max_length=100,null=True)
 	body_type	= models.CharField(max_length=100,null=True)
+	marital_status	= models.CharField(max_length=100,null=True)
+	mother_tongue = models.CharField(max_length=100,null=True)
 	food_type	= models.CharField(max_length=100,null=True)
 	drink_habbit	= models.CharField(max_length=100,null=True)
 	smoke_habbit	= models.CharField(max_length=100,null=True)
-	weight	= models.CharField(max_length=100,null=True)
-
+	
+#birth & religious
+	birth_time	= models.CharField(max_length=100,null=True)
+	birth_place	= models.CharField(max_length=100,null=True)
+	gotram	= models.CharField(max_length=100,null=True)
+	star	= models.CharField(max_length=100,null=True)
+	rashi = models.CharField(max_length=100,null=True)
+	caste = models.CharField(max_length=100,null=True)
+	sub_caste	= models.CharField(max_length=100,null=True)
+	religion = models.CharField(max_length=100,null=True)
+	
 #location & contact
 	city = models.CharField(max_length=100,null=True)
 	state = models.CharField(max_length=100,null=True)
 	country = models.CharField(max_length=100,null=True)
+	citizenship = models.CharField(max_length=100,null=True)
 
 #profession & education
-	profession  = models.CharField(max_length=100,null=True)
-	education = models.CharField(max_length=100,null=True)
-	salary = models.CharField(max_length=100,null=True)
-	company_name = models.CharField(max_length=100,null=True)
-	sector = models.CharField(max_length=100,null=True)
-	qualification = models.CharField(max_length=100,null=True)
-	university = models.CharField(max_length=100,null=True)
+	occupation = models.CharField(max_length=100,null=True)
+	graduation = models.CharField(max_length=100,null=True)
+	graduation_status = models.CharField(max_length=100,null=True)
+	annual_income = models.CharField(max_length=100,null=True)
+	job_sector = models.CharField(max_length=100,null=True)
+	college	= models.CharField(max_length=100,null=True)
 
 #family details
 	total_family_members = models.CharField(max_length=100,null=True)
@@ -50,15 +62,9 @@ class UserFullDetails(models.Model):
 	brother_details = models.CharField(max_length=100,null=True)
 	sister_details = models.CharField(max_length=100,null=True)
 
-#other details
-	caste = models.CharField(max_length=100,null=True)
-	religion = models.CharField(max_length=100,null=True)
-	nakshatra = models.CharField(max_length=100,null=True)
-	rashi = models.CharField(max_length=100,null=True)
-	birthoftime = models.CharField(max_length=100,null=True)
-	
+
 	def __str__(self):
-		return "%s" %(self.user)
+		return "%s" %(self.basic_details.id)
 
 class SaveOTP(models.Model):
 
@@ -71,37 +77,42 @@ class SaveOTP(models.Model):
 	def __str__(self):
 		return "%s"%(self.phone_number)
 
-# class Partner_Preferences(models.Model):
-	# user = models.ForeignKey(UserDetails, on_delete=models.CASCADE)
-#basic details
-	#age
-	#physical_status
-	#mother_tongue
-	#marital_status
-	#diet_preference
-	#drinking_habbit
-	#smoking_habbit
-#residential 
-	#city
-	#state
-	#country
-	#citizenship
-#religious
-	#commounity
-	#sub_caste
-	#religion
-	#star
-	#dosham
-#education & profession
-	#occupation
-	#state
-	#employee_in
-	#citizenship
+class Viewed_matches(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	viewed_user_id = models.CharField(max_length=100,null=True)
+	viewd_status = models.BooleanField(default=True)
+	
+	def __str__(self):
+		return "%s"%(self.user)
 
-
-# 	def __str__(self):
-# 		return "%s"%(self.user)
-
+class Partner_Preferences(models.Model):
+	basic_details = models.ForeignKey(UserBasicDetails, on_delete=models.CASCADE)
+# basic details
+	age = models.CharField(max_length=100,null=True)
+	height = models.CharField(max_length=100,null=True)
+	physical_status = models.CharField(max_length=100,null=True)
+	mother_tongue = models.CharField(max_length=100,null=True)
+	marital_status = models.CharField(max_length=100,null=True)
+	diet_preference = models.CharField(max_length=100,null=True)
+	drinking_habbit = models.CharField(max_length=100,null=True)
+	smoking_habbit = models.CharField(max_length=100,null=True)
+# birth & religious
+	caste = models.CharField(max_length=100,null=True)
+	religion = models.CharField(max_length=100,null=True)
+	star = models.CharField(max_length=100,null=True)
+# education & profession
+	occupation = models.CharField(max_length=100,null=True)
+	under_graduation = models.CharField(max_length=100,null=True)
+	post_graduation = models.CharField(max_length=100,null=True)
+	super_speciality = models.CharField(max_length=100,null=True)
+	annual_income = models.CharField(max_length=100,null=True)
+	job_sector = models.CharField(max_length=100,null=True)
+# residential 
+	city = models.CharField(max_length=100,null=True)
+	state = models.CharField(max_length=100,null=True)
+	country = models.CharField(max_length=100,null=True)
+	citizenship = models.CharField(max_length=100,null=True)
+	
 # class requests(models.Model):
 
 # 	request_status_types = (
@@ -119,9 +130,3 @@ class SaveOTP(models.Model):
 # 	def __str__(self):
 # 		return "%s"%(self.user)
 
-# class Viewed_matches(models.Model):
-	#user = models.ForeignKey(User, on_delete=models.CASCADE)
-	#viewed_user_id = models.CharField(max_length=100,null=True)
-
-# 	def __str__(self):
-# 		return "%s"%(self.user)

@@ -2,15 +2,14 @@ from django.contrib import admin
 from matrimony_app.models import *
 
 class UserBasicDetailsAdmin(admin.ModelAdmin):
-	list_display=['id','phone_number','name']
+	list_display=['id','phone_number','matrimony_id']
 
 class UserFullDetailsAdmin(admin.ModelAdmin):
-	list_display=['basic_details','gender','dateofbirth']
-
+	list_display=['id','name','basic_details','gender','dateofbirth']
 
 admin.site.register(UserBasicDetails,UserBasicDetailsAdmin)
 admin.site.register(UserFullDetails,UserFullDetailsAdmin)
 admin.site.register(SaveOTP)
-
-
+admin.site.register(Viewed_matches)
+admin.site.register(Partner_Preferences)
 

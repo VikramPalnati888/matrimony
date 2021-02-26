@@ -14,6 +14,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from matrimony_app.send_otp import *
 from matrimony_app.models import *
 from matrimony_app.serializers import *
+from datetime import datetime, date 
+
 
 def generate_otp():
 	"""Generating 4 digits OTP automatically"""
@@ -24,6 +26,10 @@ def generate_Id():
 	userid = str(uuid.uuid4().fields[-1])[:4]
 	return "MID"+userid
 
+def calculate_age(born):
+	today = date.today()
+	age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+	return age
 
 class Login(APIView):
 
@@ -81,6 +87,7 @@ class otp_verification(APIView):
 	def post(self, request, format=None):
 		data = request.data
 		user_obj = UserBasicDetails.objects.get(phone_number=data['phone_number'])
+			
 		try:
 			otp_obj = SaveOTP.objects.get(phone_number=user_obj)
 			if otp_obj.otp == int(data['otp']):
@@ -88,19 +95,30 @@ class otp_verification(APIView):
 				if user is not None:
 					login(request,user)
 					otp_obj.delete()
-					return Response({
-									"status":True,
-									"user_status":user.is_authenticated, 
-									"user_id": user.id,
-									"phone_number":data['phone_number'],
-									"matrimony_id":user_obj.matrimony_id,
-									"name":user_obj.name,
-									"message": "Login Successful"
-									},status=status.HTTP_200_OK)
+					try:
+						user_name = UserFullDetails.objects.get(basic_details__id=user_obj.id)
+						return Response({
+										"status":True,
+										"user_status":user.is_authenticated, 
+										"user_id": user.id,
+										"phone_number":data['phone_number'],
+										"matrimony_id":user_obj.matrimony_id,
+										"username": user_name.name,
+										"message": "Login Successful"
+										},status=status.HTTP_200_OK)
+					except Exception as e:
+						return Response({
+										"status":True,
+										"user_status":user.is_authenticated, 
+										"user_id": user.id,
+										"phone_number":data['phone_number'],
+										"matrimony_id":user_obj.matrimony_id,
+										"username": None,
+										"message": "Login Successful"
+										},status=status.HTTP_200_OK)
 				else:
 					return Response({"user":"Not valid",
-										"user_status":False,
-											})
+										"user_status":False},status=status.HTTP_400_BAD_REQUEST)
 			else:
 				return Response({"status":False,
 									"error":"invalid otp"},status = status.HTTP_401_UNAUTHORIZED)
@@ -118,10 +136,14 @@ class Logout(APIView):
 class UserFullDetailsView(APIView):
 	def get(self, request):
 		response = {}
+		userId = request.data.get('user_id')
 		try:
-			user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
-			print(user_basic_obj)
-			user_qs = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+			if userId:
+				user_basic_obj = UserBasicDetails.objects.get(user__id = userId)
+				user_qs = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+			else:	
+				user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
+				user_qs = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
@@ -131,14 +153,11 @@ class UserFullDetailsView(APIView):
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 	def post(self, request):
-		data = request.data
-		user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
-		user_basic_obj.name = data['name']
-		user_basic_obj.save()
 		if not request.POST._mutable:
 			request.POST._mutable = True
+		data = request.data
+		user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
 		data['basic_details'] = user_basic_obj.id
-
 		serializer = UserFullDetailsSerialzers(data = data)
 		if serializer.is_valid(): 
 			serializer.save()
@@ -148,11 +167,8 @@ class UserFullDetailsView(APIView):
 	def put(self, request):
 		if not request.POST._mutable:
 			request.POST._mutable = True
+		response = {}
 		data = request.data
-		if data['name']:
-			user_obj = UserBasicDetails.objects.get(id=request.user.id)
-			user_obj.name = data['name']
-			user_obj.save()
 		try:
 			if data['image'] == '':
 				del data['image']
@@ -167,16 +183,16 @@ class UserFullDetailsView(APIView):
 			serializer = UserFullDetailsSerialzers(queryset, data=data, partial=True)
 		if serializer.is_valid():
 			serializer.save()
-			return Response(serializer.data, status=status.HTTP_200_OK)
+			serializer1=UserBasicDetailsSerialzers(user_obj,many=False)
+			response[request.user.id] = serializer1.data
+			serializer2=UserFullDetailsSerialzers(queryset,many=False)
+			response[request.user.id].update(serializer2.data)
+			return Response(response.values(),status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class NewMatches(APIView):
-# 	def get(self, request):
-
-# 	return Response(response, status=status.HTTP_200_OK)
 
 class droplistDetails(APIView):
 	def get(self,request):
+		gender_list = ["Male","Female","Others"]
 		height_list = ["4’6”","4’7”","4’8”","4’9”","4’10”","4’11”","5’0”",
 						"5’1”","5’2”","5’3”","5’4”","5’5”","5’6”","5’7”",
 						"5’8”","5’9”","5’10”","5’11”","6’0”"]
@@ -185,6 +201,128 @@ class droplistDetails(APIView):
 		response = {
 					"Height": height_list,
 					"Religion":religion_list,
-					"Qualification":qualification_list
+					"Qualification":qualification_list,
+					"Gender":gender_list
 					}
 		return Response(response, status=status.HTTP_200_OK)
+
+
+#main Funcationality start from here
+
+class NewMatches(APIView):
+	def get(self, request):
+		response = {}
+		try:
+			user_qs	= User.objects.all().order_by('-id')[:10]
+			main_obj = UserFullDetails.objects.get(basic_details__user__id=request.user.id)
+			for dt in user_qs:
+				if not dt.is_superuser:
+					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.id)
+					user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+					if main_obj.gender != user_full_obj.gender:
+						serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
+						response[dt.id] = serializer1.data
+						serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+						response[dt.id].update(serializer2.data)
+		except  Exception as e:
+			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+class ViewdMatches(APIView):
+	def post(self, request):
+		v_user_id = request.data.get('user_id')
+		instance = User.objects.get(id=request.user.id)
+		try:
+			viewed_obj = Viewed_matches.objects.get(user=instance,viewed_user_id=v_user_id,viewd_status=True)
+			return Response({"message":"Already Viewed",
+							"status":True})
+		except Exception as e:
+			Viewed_matches.objects.create(user=instance,viewed_user_id=v_user_id,viewd_status=True)
+			return Response({"message":"Viewed Details Saved Successful",
+								"status":True})
+		
+
+	def get(self, request):
+		response = {}
+		try:
+			viewed_obj = Viewed_matches.objects.filter(user__id=request.user.id)
+			for viewed_data in viewed_obj:
+				user_basic_obj = UserBasicDetails.objects.get(user = int(viewed_data.viewed_user_id))
+				serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
+				response[int(viewed_data.viewed_user_id)] = serializer1.data
+				
+				user_full_obj = UserFullDetails.objects.get(basic_details=user_basic_obj)
+				serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+				response[int(viewed_data.viewed_user_id)].update(serializer2.data)
+				
+				viewed_details_obj = Viewed_matches.objects.get(viewed_user_id = int(viewed_data.viewed_user_id))
+				serializer3=ViewdDetailsSerialzers(viewed_details_obj,many=False)
+				response[int(viewed_data.viewed_user_id)].update(serializer3.data)
+		except  Exception as e:
+			print(e)
+			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+
+class PPView(APIView):
+	def get(self, request):
+		userId = request.data.get('user_id')
+		try:
+			if userId:
+				user_basic_obj = UserBasicDetails.objects.get(user__id = userId)
+				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
+
+			else:	
+				user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
+				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
+		except ObjectDoesNotExist:
+			return Response({"message":"UserDetail ObjectDoesNotExist"})
+
+		serializer2=Partner_PreferencesSerialzers(user_pp,many=True)
+		response[request.user.id].update(serializer2.data)
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+	def post(self, request):
+		if not request.POST._mutable:
+			request.POST._mutable = True
+		data = request.data
+		user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
+		data['basic_details'] = user_basic_obj.id
+		serializer = Partner_PreferencesSerialzers(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+	def put(self, request):
+		if not request.POST._mutable:
+			request.POST._mutable = True
+		response = {}
+		data = request.data
+
+		queryset = Partner_Preferences.objects.get(basic_details__user__id=request.user.id)
+		pp_serializer = Partner_PreferencesSerialzers(queryset, data=data, partial=True)
+		if pp_serializer.is_valid():
+			pp_serializer.save()
+			return Response(pp_serializer.data,status=status.HTTP_200_OK)
+		return Response(pp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PP_matches_View(APIView):
+	def get(self, request):
+		main_user_id = request.user.id
+		userId = request.data.get('user_id')
+		try:
+			if userId:
+				user_basic_obj = UserBasicDetails.objects.get(user__id = userId)
+				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
+
+			else:	
+				user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
+				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
+		except ObjectDoesNotExist:
+			return Response({"message":"UserDetail ObjectDoesNotExist"})
+
+		serializer2=Partner_PreferencesSerialzers(user_pp,many=True)
+		response[request.user.id].update(serializer2.data)
+		return Response(response.values(),status=status.HTTP_200_OK)
