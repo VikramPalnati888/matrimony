@@ -199,11 +199,38 @@ class droplistDetails(APIView):
 						"5’8”","5’9”","5’10”","5’11”","6’0”"]
 		religion_list = ["Hindu","Muslim","Christan","Sikh","Budhist","Jain","Other Religion"]
 		qualification_list = ["B.tech","Degree","Inter","BE","10th","Others"]
+		caste_list = ["BC","OC","SC","ST","GENERAL","OTEHRS"]
+		sub_caste_list = ["BC-A","BC-B","BC-C","BC-D","BC-E"]
+		profession_list = ["Software Developer","Software Engineer","Teacher","Driver","Govt Job","Police"]
+		location_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
+		states_list = ["Telangana","AndhraPradesh","Karnataka","Maharasta"]
+		citizen_list = ["Indian","USA","Sweden","Uk"]
+		created_by_list = ["Father","Mother","Brother","sister","Grand Father","Grand Mother"]
+		mother_tongue_list = ["Telugu","Hindi","Tamil","kannada"]
+		physical_status_list = ["Yes","No"]
+		marital_status_list = ["divorced","Single"]
+		annual_income_list = ["1>2","2>3","3>4","5>6","6>7","7+"]
+		family_type_list = ["1","2","3","4","5","6"]
+		birth_place_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
+
 		response = {
 					"Height": height_list,
 					"Religion":religion_list,
 					"Qualification":qualification_list,
-					"Gender":gender_list
+					"Gender":gender_list,
+					"Caste":caste_list,
+					"SubCaste":sub_caste_list,
+					"Profession":profession_list,
+					"Location":location_list,
+					"State":states_list,
+					"Citizen":citizen_list,
+					"Created_by":created_by_list,
+					"Mother_Tongue":mother_tongue_list,
+					"Physical_status":physical_status_list,
+					"Marital_status":marital_status_list,
+					"Annual_income":annual_income_list,
+					"Family_type":family_type_list,
+					"Birth_place":birth_place_list,
 					}
 		return Response(response, status=status.HTTP_200_OK)
 
