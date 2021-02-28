@@ -212,6 +212,9 @@ class droplistDetails(APIView):
 		annual_income_list = ["1>2","2>3","3>4","5>6","6>7","7+"]
 		family_type_list = ["1","2","3","4","5","6"]
 		birth_place_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
+		under_graduation_list = ["BA","BE","Btech","Bcom"]
+		post_graduation_list = ["MA","MBA","MCA","MCom"]
+		super_speciality_list = ["Cardiology","Oncology","Nephrology","Neurology","Endocrinology"]
 
 		response = {
 					"Height": height_list,
@@ -231,6 +234,9 @@ class droplistDetails(APIView):
 					"Annual_income":annual_income_list,
 					"Family_type":family_type_list,
 					"Birth_place":birth_place_list,
+					"Under_graduation":under_graduation_list,
+					"Post_graduation":post_graduation_list,
+					"Super_speciality":super_speciality_list,
 					}
 		return Response(response, status=status.HTTP_200_OK)
 

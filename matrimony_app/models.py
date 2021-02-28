@@ -62,6 +62,7 @@ class UserFullDetails(models.Model):
 	brother_details = models.CharField(max_length=100,null=True)
 	sister_details = models.CharField(max_length=100,null=True)
 
+	Few_Words_MySelf =  models.TextField()
 
 	def __str__(self):
 		return "%s" %(self.basic_details.id)
