@@ -20,7 +20,7 @@ class UserFullDetails(models.Model):
 	image = models.ImageField(upload_to='profile_pic/')
 
 #basic details
-	age	= models.CharField(max_length=100,null=True)
+	# age	= models.CharField(max_length=100,null=True)
 	height = models.CharField(max_length=100,null=True)
 	physical_status = models.CharField(max_length=100,null=True)
 	weight	= models.CharField(max_length=100,null=True)

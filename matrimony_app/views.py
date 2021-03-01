@@ -28,7 +28,8 @@ def generate_Id():
 
 def calculate_age(born):
 	today = date.today()
-	age = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+	born_date = born.split('/')
+	age = today.year - int(born_date[2]) - ((today.month, today.day) < (int(born_date[1]), int(born_date[0])))
 	return age
 
 class Login(APIView):
@@ -135,6 +136,8 @@ class Logout(APIView):
 
 class UserFullDetailsView(APIView):
 	def get(self, request):
+		if not request.POST._mutable:
+			request.POST._mutable = True
 		response = {}
 		userId = request.data.get('user_id')
 		try:
@@ -144,11 +147,13 @@ class UserFullDetailsView(APIView):
 			else:	
 				user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
 				user_qs = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
 		response[request.user.id] = serializer1.data
 		serializer2=UserFullDetailsSerialzers(user_qs,many=False)
+		response[request.user.id].update({"age":calculate_age(user_qs.dateofbirth)})
 		response[request.user.id].update(serializer2.data)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
@@ -187,6 +192,7 @@ class UserFullDetailsView(APIView):
 			serializer1=UserBasicDetailsSerialzers(user_obj,many=False)
 			response[request.user.id] = serializer1.data
 			serializer2=UserFullDetailsSerialzers(queryset,many=False)
+			response[request.user.id].update({"age":calculate_age(queryset.dateofbirth)})
 			response[request.user.id].update(serializer2.data)
 			return Response(response.values(),status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -200,16 +206,13 @@ class droplistDetails(APIView):
 		religion_list = ["Hindu","Muslim","Christan","Sikh","Budhist","Jain","Other Religion"]
 		qualification_list = ["B.tech","Degree","Inter","BE","10th","Others"]
 		caste_list = ["BC","OC","SC","ST","GENERAL","OTEHRS"]
-		# sub_caste_list = ["BC-A","BC-B","BC-C","BC-D","BC-E"]
 		profession_list = ["Software Developer","Software Engineer","Teacher","Driver","Govt Job","Police"]
-		# location_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
-		# states_list = ["Telangana","AndhraPradesh","Karnataka","Maharasta"]
 		citizen_list = ["Indian","USA","Sweden","Uk"]
 		created_by_list = ["Father","Mother","Brother","sister","Grand Father","Grand Mother"]
 		mother_tongue_list = ["Telugu","Hindi","Tamil","kannada"]
 		physical_status_list = ["Yes","No"]
 		marital_status_list = ["Married","Single"]
-		annual_income_list = ["1>2","2>3","3>4","5>6","6>7","7+"]
+		annual_income_list = ["1-2","2-3","3-4","5-6","6-7","7+"]
 		family_type_list = ["1","2","3","4","5","6"]
 		birth_place_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
 		under_graduation_list = ["BA","BE","Btech","Bcom"]
@@ -274,6 +277,7 @@ class NewMatches(APIView):
 						serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
 						response[dt.id] = serializer1.data
 						serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+						response[dt.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
 						response[dt.id].update(serializer2.data)
 		except  Exception as e:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
@@ -304,6 +308,7 @@ class ViewdMatches(APIView):
 				
 				user_full_obj = UserFullDetails.objects.get(basic_details=user_basic_obj)
 				serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+				response[int(viewed_data.viewed_user_id)].update({"age":calculate_age(user_full_obj.dateofbirth)})
 				response[int(viewed_data.viewed_user_id)].update(serializer2.data)
 				
 				viewed_details_obj = Viewed_matches.objects.get(viewed_user_id = int(viewed_data.viewed_user_id))
