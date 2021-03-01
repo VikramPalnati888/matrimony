@@ -14,5 +14,8 @@ urlpatterns = [
 				path('new_matches/',NewMatches.as_view(), name="new matches details"),
 				path('viewd_details/',ViewdMatches.as_view(), name="viewd matches details"),
 				path('pp_details/',PPView.as_view(), name="Partner Preferences details"),
+				path('countries/',CountryList.as_view(), name="countries list"),
+				path('states/',StatesList.as_view(), name="states list"),
+				path('cities/',CitiesList.as_view(), name="cities list"),
 	
 			]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

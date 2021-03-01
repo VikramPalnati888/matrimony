@@ -12,4 +12,7 @@ admin.site.register(UserFullDetails,UserFullDetailsAdmin)
 admin.site.register(SaveOTP)
 admin.site.register(Viewed_matches)
 admin.site.register(Partner_Preferences)
+admin.site.register(Country)
+admin.site.register(State)
+admin.site.register(City)
 

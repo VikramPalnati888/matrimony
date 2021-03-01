@@ -200,15 +200,15 @@ class droplistDetails(APIView):
 		religion_list = ["Hindu","Muslim","Christan","Sikh","Budhist","Jain","Other Religion"]
 		qualification_list = ["B.tech","Degree","Inter","BE","10th","Others"]
 		caste_list = ["BC","OC","SC","ST","GENERAL","OTEHRS"]
-		sub_caste_list = ["BC-A","BC-B","BC-C","BC-D","BC-E"]
+		# sub_caste_list = ["BC-A","BC-B","BC-C","BC-D","BC-E"]
 		profession_list = ["Software Developer","Software Engineer","Teacher","Driver","Govt Job","Police"]
-		location_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
-		states_list = ["Telangana","AndhraPradesh","Karnataka","Maharasta"]
+		# location_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
+		# states_list = ["Telangana","AndhraPradesh","Karnataka","Maharasta"]
 		citizen_list = ["Indian","USA","Sweden","Uk"]
 		created_by_list = ["Father","Mother","Brother","sister","Grand Father","Grand Mother"]
 		mother_tongue_list = ["Telugu","Hindi","Tamil","kannada"]
 		physical_status_list = ["Yes","No"]
-		marital_status_list = ["divorced","Single"]
+		marital_status_list = ["Married","Single"]
 		annual_income_list = ["1>2","2>3","3>4","5>6","6>7","7+"]
 		family_type_list = ["1","2","3","4","5","6"]
 		birth_place_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
@@ -240,8 +240,25 @@ class droplistDetails(APIView):
 					}
 		return Response(response, status=status.HTTP_200_OK)
 
+class CountryList(APIView):
+	def get(self,request):
+		queryset = Country.objects.all()
+		response=CountrySerializer(queryset,many=True)
+		return Response(response.data, status=status.HTTP_200_OK)
 
-#main Funcationality start from here
+class StatesList(APIView):
+	def get(self,request):
+		queryset = State.objects.filter(country__id=request.GET.get('country_id'))
+		response=StateSerializer(queryset,many=True)
+		return Response(response.data, status=status.HTTP_200_OK)
+
+class CitiesList(APIView):
+	def get(self,request):
+		queryset = City.objects.filter(state__id=request.GET.get('state_id'))
+		response=CitySerializer(queryset,many=True)
+		return Response(response.data, status=status.HTTP_200_OK)
+
+# main Funcationality start from here
 
 class NewMatches(APIView):
 	def get(self, request):
