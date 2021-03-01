@@ -54,6 +54,9 @@ class UserFullDetails(models.Model):
 	annual_income = models.CharField(max_length=100,null=True)
 	job_sector = models.CharField(max_length=100,null=True)
 	college	= models.CharField(max_length=100,null=True)
+	under_graduation = models.CharField(max_length=100,null=True)
+	post_graduation	= models.CharField(max_length=100,null=True)
+	super_speciality = models.CharField(max_length=100,null=True)
 
 #family details
 	total_family_members = models.CharField(max_length=100,null=True)
