@@ -39,3 +39,8 @@ class CitySerializer(serializers.ModelSerializer):
 	class Meta:
 		model = City
 		fields = '__all__'
+
+class imageSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = imagetest
+		fields = '__all__'

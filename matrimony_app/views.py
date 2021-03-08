@@ -15,6 +15,10 @@ from matrimony_app.send_otp import *
 from matrimony_app.models import *
 from matrimony_app.serializers import *
 from datetime import datetime, date 
+import base64
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.conf import settings
 
 
 def generate_otp():
@@ -147,7 +151,6 @@ class UserFullDetailsView(APIView):
 			else:	
 				user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
 				user_qs = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
-
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
@@ -163,6 +166,12 @@ class UserFullDetailsView(APIView):
 		data = request.data
 		user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
 		data['basic_details'] = user_basic_obj.id
+		pak = data['image'].encode('utf-8')
+		decoded_image_data = base64.decodebytes(pak)
+		with open(data['name']+'.png', 'wb') as file_to_save:
+			file_to_save.write(decoded_image_data)
+			
+		data['image'] = data['name']+'.jpg'
 		serializer = UserFullDetailsSerialzers(data = data)
 		if serializer.is_valid(): 
 			serializer.save()
@@ -379,3 +388,11 @@ class PP_matches_View(APIView):
 		serializer2=Partner_PreferencesSerialzers(user_pp,many=True)
 		response[request.user.id].update(serializer2.data)
 		return Response(response.values(),status=status.HTTP_200_OK)
+
+class imagetest(APIView):
+    def post(self, request):
+       serializer = imageSerializer(data=request.data)
+       if serializer.is_valid():
+           serializer.save()
+           return Response(serializer.data, status=status.HTTP_201_CREATED)
+       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
