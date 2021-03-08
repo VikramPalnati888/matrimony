@@ -17,5 +17,6 @@ urlpatterns = [
 				path('countries/',CountryList.as_view(), name="countries list"),
 				path('states/',StatesList.as_view(), name="states list"),
 				path('cities/',CitiesList.as_view(), name="cities list"),
+				path('testImage/',imagetest.as_view(), name="test list"),
 	
 			]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
