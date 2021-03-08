@@ -166,12 +166,6 @@ class UserFullDetailsView(APIView):
 		data = request.data
 		user_basic_obj = UserBasicDetails.objects.get(user__id = request.user.id)
 		data['basic_details'] = user_basic_obj.id
-		pak = data['image'].encode('utf-8')
-		decoded_image_data = base64.decodebytes(pak)
-		with open(data['name']+'.png', 'wb') as file_to_save:
-			file_to_save.write(decoded_image_data)
-			
-		data['image'] = data['name']+'.jpg'
 		serializer = UserFullDetailsSerialzers(data = data)
 		if serializer.is_valid(): 
 			serializer.save()
@@ -390,9 +384,10 @@ class PP_matches_View(APIView):
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 class imagetest(APIView):
-    def post(self, request):
-       serializer = imageSerializer(data=request.data)
-       if serializer.is_valid():
-           serializer.save()
-           return Response(serializer.data, status=status.HTTP_201_CREATED)
-       return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	def post(self, request):
+
+		serializer = imageSerializer(data=request.data)
+		if serializer.is_valid():
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
