@@ -19,7 +19,7 @@ import base64
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
-
+import ast
 
 def generate_otp():
 	"""Generating 4 digits OTP automatically"""
@@ -165,21 +165,21 @@ class UserFullDetailsView(APIView):
 		if not request.POST._mutable:
 			request.POST._mutable = True
 		user_id = request.GET.get('user_id')
-		data = request.data
+		data = ast.literal_eval(request.data['registerdata'])
 		user_basic_obj = UserBasicDetails.objects.get(user__id = user_id)
 		
 		try:
-			print("try block")
 			userFull_details = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
-			data['basic_details'] = user_basic_obj.id
+			data['image'] = request.FILES['image']
+			data['basic_details'] = int(user_basic_obj.id)
 			serializer = UserFullDetailsSerialzers(userFull_details,data = data, partial=True)
-			if serializer.is_valid(): 
+			if serializer.is_valid():
 				serializer.save()
 				return Response(serializer.data, status=status.HTTP_200_OK)
 			return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 		except Exception as e:
-			print(e,"print except")
-			data['basic_details'] = user_basic_obj.id
+			data['image'] = request.FILES['image']
+			data['basic_details'] = int(user_basic_obj.id)
 			serializer = UserFullDetailsSerialzers(data = data)
 			if serializer.is_valid(): 
 				serializer.save()
