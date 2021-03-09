@@ -167,15 +167,18 @@ class UserFullDetailsView(APIView):
 		user_id = request.GET.get('user_id')
 		data = request.data
 		user_basic_obj = UserBasicDetails.objects.get(user__id = user_id)
-		userFull_details = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
-		if userFull_details:	
+		
+		try:
+			print("try block")
+			userFull_details = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 			data['basic_details'] = user_basic_obj.id
 			serializer = UserFullDetailsSerialzers(userFull_details,data = data, partial=True)
 			if serializer.is_valid(): 
 				serializer.save()
-				return Response(serializer.data, status=status.HTTP_201_CREATED)
+				return Response(serializer.data, status=status.HTTP_200_OK)
 			return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-		else:
+		except Exception as e:
+			print(e,"print except")
 			data['basic_details'] = user_basic_obj.id
 			serializer = UserFullDetailsSerialzers(data = data)
 			if serializer.is_valid(): 
