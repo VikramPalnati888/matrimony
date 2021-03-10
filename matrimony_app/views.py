@@ -32,8 +32,11 @@ def generate_Id():
 
 def calculate_age(born):
 	today = date.today()
-	born_date = born.split('/')
-	age = today.year - int(born_date[2]) - ((today.month, today.day) < (int(born_date[1]), int(born_date[0])))
+	DOB = born.split('/')
+	born_date = DOB[1]
+	born_month = DOB[0]
+	born_year  = DOB[2]
+	age = today.year - int(born_year) - ((today.month, today.day) < (int(born_month), int(born_date)))
 	return age
 
 class Login(APIView):
@@ -233,8 +236,8 @@ class droplistDetails(APIView):
 		family_type_list = ["1","2","3","4","5","6"]
 		birth_place_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
 		under_graduation_list = ["BA","BE","Btech","Bcom"]
-		post_graduation_list = ["MA","MBA","MCA","MCom"]
-		super_speciality_list = ["Cardiology","Oncology","Nephrology","Neurology","Endocrinology"]
+		post_graduation_list = ["MA","MBA","MCA","MCom","None"]
+		super_speciality_list = ["Cardiology","Oncology","Nephrology","Neurology","Endocrinology","None"]
 
 		response = {
 					"Height": height_list,
@@ -282,7 +285,7 @@ class NewMatches(APIView):
 		response = {}
 		user_id = request.GET.get('user_id')
 		try:
-			user_qs	= User.objects.all().order_by('-id')[:10]
+			user_qs	= User.objects.all().order_by('-id')
 			main_obj = UserFullDetails.objects.get(basic_details__user__id=user_id)
 			for dt in user_qs:
 				if not dt.is_superuser:
@@ -302,7 +305,7 @@ class ViewdMatches(APIView):
 	def post(self, request):
 		v_user_id = request.data.get('view_user_id')
 		user_id = request.GET.get('user_id')
-		instance = User.objects.get(id=request.user.id)
+		instance = User.objects.get(id=user_id)
 		try:
 			viewed_obj = Viewed_matches.objects.get(user=instance,viewed_user_id=v_user_id,viewd_status=True)
 			return Response({"message":"Already Viewed",
@@ -353,7 +356,7 @@ class PPView(APIView):
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 
 		serializer2=Partner_PreferencesSerialzers(user_pp,many=True)
-		response[request.user.id].update(serializer2.data)
+		response[user_id].update(serializer2.data)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 	def post(self, request):
@@ -374,7 +377,7 @@ class PPView(APIView):
 			request.POST._mutable = True
 		response = {}
 		data = request.data
-		user_id = request.GET.get('partner_user_id')
+		user_id = request.GET.get('user_id')
 		queryset = Partner_Preferences.objects.get(basic_details__user__id=user_id)
 		pp_serializer = Partner_PreferencesSerialzers(queryset, data=data, partial=True)
 		if pp_serializer.is_valid():
@@ -383,30 +386,57 @@ class PPView(APIView):
 		return Response(pp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class PP_matches_View(APIView):
+class SearchingView(APIView):
 	def get(self, request):
+		response = {}
 		main_user_id = request.GET.get('user_id')
-		userId = request.data.get('user_id')
+		mId = request.data.get('matrimony_id')
 		try:
-			if userId:
-				user_basic_obj = UserBasicDetails.objects.get(user__id = userId)
-				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
+			if mId:
+				user_basic_obj = UserBasicDetails.objects.get(matrimony_id = mId)
+				user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 
 			else:	
 				user_basic_obj = UserBasicDetails.objects.get(user__id = main_user_id)
-				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
+				user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
-
-		serializer2=Partner_PreferencesSerialzers(user_pp,many=True)
-		response[request.user.id].update(serializer2.data)
+		serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
+		response[main_user_id] = serializer1.data
+		serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+		response[main_user_id].update({"age":calculate_age(user_full_obj.dateofbirth)})
+		response[main_user_id].update(serializer2.data)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
-class imagetest(APIView):
-	def post(self, request):
-
-		serializer = imageSerializer(data=request.data)
-		if serializer.is_valid():
-			serializer.save()
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class SearchingPPView(APIView):
+	def get(self, request):
+		response = {}
+		main_user_id = request.GET.get('user_id')
+		data = request.data
+		try:
+			user_full_obj = UserFullDetails.objects.filter(height__range= [int(data['min_height']), int(data['max_height'])],
+															physical_status = data['physical_status'],
+															marital_status = data['marital_status'],
+															mother_tongue = data['mother_tongue'],
+															occupation = data['occupation'],
+															graduation = data['graduation'],
+															post_graduation = data['post_graduation'],
+															super_speciality = data['super_speciality'],
+															star = data['star'],
+															caste = data['caste'],
+															religion = data['religion'],
+															city = data['city'],
+															state = data['state'],
+															country = data['country'],
+															citizenship =data['citizenship'])
+			for dt in user_full_obj:
+				if calculate_age(dt.dateofbirth) in range(data['min_age'],data['max_age']):
+					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
+					serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=True)
+					response[dt] = serializer1.data
+					serializer2=UserFullDetailsSerialzers(user_full_obj,many=True)
+					response[dt].update({"age":calculate_age(dt.dateofbirth)})
+					response[dt].update(serializer2.data)
+					return Response(response.values(),status=status.HTTP_200_OK)
+		except ObjectDoesNotExist:
+			return Response({"message":"UserDetail ObjectDoesNotExist"})

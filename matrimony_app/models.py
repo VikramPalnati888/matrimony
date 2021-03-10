@@ -146,8 +146,6 @@ class City(models.Model):
 	def __str__(self):
 		return self.city
 
-class imagetest(models.Model):
-	image = models.ImageField(upload_to='profile_pic/')
 # class requests(models.Model):
 
 # 	request_status_types = (
