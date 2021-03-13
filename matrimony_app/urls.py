@@ -18,5 +18,6 @@ urlpatterns = [
 				path('states/',StatesList.as_view(), name="states list"),
 				path('cities/',CitiesList.as_view(), name="cities list"),
 				path('search/',SearchingView.as_view(), name="searching"),
-				path('searchpp/',SearchingPPView.as_view(), name="searching"),
+				path('searchpp/',SearchingPPView.as_view(), name="searching pp"),
+				path('ug_pg_matches/',UgPgMatchesView.as_view(), name="Ug & Pg Matches"),
 			]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

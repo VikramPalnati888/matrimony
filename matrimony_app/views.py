@@ -112,6 +112,7 @@ class otp_verification(APIView):
 										"phone_number":data['phone_number'],
 										"matrimony_id":user_obj.matrimony_id,
 										"username": user_name.name,
+										"image":user_name.image.url,
 										"message": "Login Successful"
 										},status=status.HTTP_200_OK)
 					except Exception as e:
@@ -122,6 +123,7 @@ class otp_verification(APIView):
 										"phone_number":data['phone_number'],
 										"matrimony_id":user_obj.matrimony_id,
 										"username": None,
+										"image": None,
 										"message": "Login Successful"
 										},status=status.HTTP_200_OK)
 				else:
@@ -238,7 +240,11 @@ class droplistDetails(APIView):
 		under_graduation_list = ["BA","BE","Btech","Bcom"]
 		post_graduation_list = ["MA","MBA","MCA","MCom","None"]
 		super_speciality_list = ["Cardiology","Oncology","Nephrology","Neurology","Endocrinology","None"]
-
+		rasi_list = ["Maish","Vrish","Mithun","Kark","Singh","Kanya","Tula","Vrishchik","Dhanu","Makar","Kumbh","Meen"]
+		star_list = ["Ashvini","Bharani","Krittika","Rohini","Mrigashīrsha","Ardra","Punarvasu","Pushya","Āshleshā",
+						"Maghā","Pūrva Phalgunī","Uttara Phalgunī","Hasta","Chitra","Swāti","Vishakha","Anusham Anuradha","Jyeshtha"
+						,"Mula","Purva Ashadha","Uttara Ashadha","Sravana","Dhanishta","Shatabhisha",
+						"Purva Bhadrapada","Uttara Bhādrapadā","Revati","Abhijit"]
 		response = {
 					"Height": height_list,
 					"Religion":religion_list,
@@ -257,6 +263,9 @@ class droplistDetails(APIView):
 					"Under_graduation":under_graduation_list,
 					"Post_graduation":post_graduation_list,
 					"Super_speciality":super_speciality_list,
+					"Rasi": rasi_list,
+					"Age": [i for i in range(18,61)],
+					"Stars": star_list,
 					}
 		return Response(response, status=status.HTTP_200_OK)
 
@@ -402,10 +411,10 @@ class SearchingView(APIView):
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
-		response[main_user_id] = serializer1.data
+		response[user_basic_obj.id] = serializer1.data
 		serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
-		response[main_user_id].update({"age":calculate_age(user_full_obj.dateofbirth)})
-		response[main_user_id].update(serializer2.data)
+		response[user_basic_obj.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
+		response[user_basic_obj.id].update(serializer2.data)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 class SearchingPPView(APIView):
@@ -419,9 +428,8 @@ class SearchingPPView(APIView):
 															marital_status = data['marital_status'],
 															mother_tongue = data['mother_tongue'],
 															occupation = data['occupation'],
-															graduation = data['graduation'],
+															under_graduation = data['under_graduation'],
 															post_graduation = data['post_graduation'],
-															super_speciality = data['super_speciality'],
 															star = data['star'],
 															caste = data['caste'],
 															religion = data['religion'],
@@ -433,10 +441,50 @@ class SearchingPPView(APIView):
 				if calculate_age(dt.dateofbirth) in range(data['min_age'],data['max_age']):
 					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
 					serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=True)
-					response[dt] = serializer1.data
-					serializer2=UserFullDetailsSerialzers(user_full_obj,many=True)
-					response[dt].update({"age":calculate_age(dt.dateofbirth)})
-					response[dt].update(serializer2.data)
-					return Response(response.values(),status=status.HTTP_200_OK)
+					response[dt.id] = serializer1.data
+					user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+					serializer2=UserFullDetailsSerialzers(user_full,many=True)
+					response[dt.id].update({"age":calculate_age(dt.dateofbirth)})
+					response[dt.id].update(serializer2.data)
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+class UgPgMatchesView(APIView):
+	def get(self, request):
+		response = {}
+		user_id = request.GET.get('user_id')
+		under_graduation_name = request.data.get('ug_name')
+		post_graduation_name = request.data.get('pg_name')
+		ug = request.data.get('ug')
+		pg = request.data.get('pg')
+		lc = request.data.get('lc')
+		location_based = request.data.get('location')
+		try:
+			if ug == 'under_graduation':
+				user_full_obj = UserFullDetails.objects.all().order_by('under_graduation')
+			elif pg == 'post_graduation':
+				user_full_obj = UserFullDetails.objects.all().order_by('post_graduation')
+			elif under_graduation_name:
+				user_full_obj = UserFullDetails.objects.filter(under_graduation=under_graduation_name)
+			elif post_graduation_name:
+				user_full_obj = UserFullDetails.objects.filter(post_graduation=post_graduation_name)
+			elif lc == 'location':
+				user_full_obj = UserFullDetails.objects.all().order_by('state')
+			else:	
+				user_full_obj = UserFullDetails.objects.filter(city=location_based)
+			for dt in user_full_obj:
+				main_user = UserBasicDetails.objects.get(user__id = user_id)
+				main_user_full = UserFullDetails.objects.get(basic_details__id=main_user.id)
+				if main_user.user.id != dt.basic_details.user.id and  main_user_full.gender != dt.gender:
+					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
+					serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+					response[int(dt.id)] = serializer1.data
+					user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+					serializer2=UserFullDetailsSerialzers(user_full, many=False)
+					response[int(dt.id)].update({"age":calculate_age(dt.dateofbirth)})
+					response[int(dt.id)].update(serializer2.data)
+					
+		except ObjectDoesNotExist:
+			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		return Response(response.values(),status=status.HTTP_200_OK)
