@@ -471,8 +471,10 @@ class UgPgMatchesView(APIView):
 				user_full_obj = UserFullDetails.objects.filter(post_graduation=post_graduation_name)
 			elif lc == 'location':
 				user_full_obj = UserFullDetails.objects.all().order_by('state')
-			else:	
+			elif location_based:	
 				user_full_obj = UserFullDetails.objects.filter(city=location_based)
+			else:
+				user_full_obj = UserFullDetails.objects.all()
 			for dt in user_full_obj:
 				main_user = UserBasicDetails.objects.get(user__id = user_id)
 				main_user_full = UserFullDetails.objects.get(basic_details__id=main_user.id)
