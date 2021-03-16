@@ -353,6 +353,7 @@ class PPView(APIView):
 	def get(self, request):
 		user_id = request.GET.get('user_id')
 		userId = request.data.get('partner_user_id')
+		response = {}
 		try:
 			if userId:
 				user_basic_obj = UserBasicDetails.objects.get(user__id = userId)
@@ -404,10 +405,6 @@ class SearchingView(APIView):
 			if mId:
 				user_basic_obj = UserBasicDetails.objects.get(matrimony_id = mId)
 				user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
-
-			else:	
-				user_basic_obj = UserBasicDetails.objects.get(user__id = main_user_id)
-				user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
@@ -423,6 +420,8 @@ class SearchingPPView(APIView):
 		main_user_id = request.GET.get('user_id')
 		data = request.data
 		try:
+			main_user = UserBasicDetails.objects.get(user__id = main_user_id)
+			main_user_full = UserFullDetails.objects.get(basic_details__id=main_user.id)
 			user_full_obj = UserFullDetails.objects.filter(height__range= [int(data['min_height']), int(data['max_height'])],
 															physical_status = data['physical_status'],
 															marital_status = data['marital_status'],
@@ -438,14 +437,15 @@ class SearchingPPView(APIView):
 															country = data['country'],
 															citizenship =data['citizenship'])
 			for dt in user_full_obj:
-				if calculate_age(dt.dateofbirth) in range(data['min_age'],data['max_age']):
-					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
-					serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=True)
-					response[dt.id] = serializer1.data
-					user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
-					serializer2=UserFullDetailsSerialzers(user_full,many=True)
-					response[dt.id].update({"age":calculate_age(dt.dateofbirth)})
-					response[dt.id].update(serializer2.data)
+				if main_user.user.id != dt.basic_details.user.id and  main_user_full.gender != dt.gender:
+					if calculate_age(dt.dateofbirth) in range(data['min_age'],data['max_age']):
+						user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
+						serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=True)
+						response[dt.id] = serializer1.data
+						user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+						serializer2=UserFullDetailsSerialzers(user_full,many=True)
+						response[dt.id].update({"age":calculate_age(dt.dateofbirth)})
+						response[dt.id].update(serializer2.data)
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		return Response(response.values(),status=status.HTTP_200_OK)
