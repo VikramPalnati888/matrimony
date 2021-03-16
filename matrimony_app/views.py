@@ -355,19 +355,14 @@ class PPView(APIView):
 		userId = request.data.get('partner_user_id')
 		response = {}
 		try:
-			if userId:
-				user_basic_obj = UserBasicDetails.objects.get(user__id = userId)
-				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
-
-			else:	
 				user_basic_obj = UserBasicDetails.objects.get(user__id = user_id)
 				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
 		except ObjectDoesNotExist:
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+				return Response({"message":"UserDetail ObjectDoesNotExist"})
 
-		serializer2=Partner_PreferencesSerialzers(user_pp,many=True)
-		response[user_id].update(serializer2.data)
-		return Response(response.values(),status=status.HTTP_200_OK)
+		serializer2=Partner_PreferencesSerialzers(user_pp,many=False)
+		response.update(serializer2.data)
+		return Response(response,status=status.HTTP_200_OK)
 
 	def post(self, request):
 		if not request.POST._mutable:
