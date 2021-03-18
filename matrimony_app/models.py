@@ -92,8 +92,10 @@ class Viewed_matches(models.Model):
 class Partner_Preferences(models.Model):
 	basic_details = models.ForeignKey(UserBasicDetails, on_delete=models.CASCADE)
 # basic details
-	age = models.CharField(max_length=100,null=True)
-	height = models.CharField(max_length=100,null=True)
+	min_age = models.CharField(max_length=100,null=True)
+	max_age = models.CharField(max_length=100,null=True)
+	min_height = models.CharField(max_length=100,null=True)
+	max_height = models.CharField(max_length=100,null=True)
 	physical_status = models.CharField(max_length=100,null=True)
 	mother_tongue = models.CharField(max_length=100,null=True)
 	marital_status = models.CharField(max_length=100,null=True)

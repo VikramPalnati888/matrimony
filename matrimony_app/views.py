@@ -20,6 +20,7 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 import ast
+import decimal
 
 def generate_otp():
 	"""Generating 4 digits OTP automatically"""
@@ -38,6 +39,14 @@ def calculate_age(born):
 	born_year  = DOB[2]
 	age = today.year - int(born_year) - ((today.month, today.day) < (int(born_month), int(born_date)))
 	return age
+
+def height_range(height):
+	ht = height.replace('’','.')
+	return ht
+
+def height_replaced(height):
+	ht = height.replace('’','')
+	return ht
 
 class Login(APIView):
 
@@ -222,9 +231,9 @@ class UserFullDetailsView(APIView):
 class droplistDetails(APIView):
 	def get(self,request):
 		gender_list = ["Male","Female","Others"]
-		height_list = ["4’6”","4’7”","4’8”","4’9”","4’10”","4’11”","5’0”",
-						"5’1”","5’2”","5’3”","5’4”","5’5”","5’6”","5’7”",
-						"5’8”","5’9”","5’10”","5’11”","6’0”"]
+		height_list = ["4’6","4’7","4’8","4’9","4’10","4’11","5’0",
+						"5’1","5’2","5’3","5’4","5’5","5’6","5’7",
+						"5’8","5’9","5’10","5’11","6’0"]
 		religion_list = ["Hindu","Muslim","Christan","Sikh","Budhist","Jain","Other Religion"]
 		qualification_list = ["B.tech","Degree","Inter","BE","10th","Others"]
 		caste_list = ["BC","OC","SC","ST","GENERAL","OTEHRS"]
@@ -235,7 +244,7 @@ class droplistDetails(APIView):
 		physical_status_list = ["Yes","No"]
 		marital_status_list = ["Married","Single"]
 		annual_income_list = ["1-2","2-3","3-4","5-6","6-7","7+"]
-		family_type_list = ["1","2","3","4","5","6"]
+		family_type_list = ["Lower class","Middle class","High class"]
 		birth_place_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
 		under_graduation_list = ["BA","BE","Btech","Bcom"]
 		post_graduation_list = ["MA","MBA","MCA","MCom","None"]
@@ -245,6 +254,8 @@ class droplistDetails(APIView):
 						"Maghā","Pūrva Phalgunī","Uttara Phalgunī","Hasta","Chitra","Swāti","Vishakha","Anusham Anuradha","Jyeshtha"
 						,"Mula","Purva Ashadha","Uttara Ashadha","Sravana","Dhanishta","Shatabhisha",
 						"Purva Bhadrapada","Uttara Bhādrapadā","Revati","Abhijit"]
+		father_occ_list = ['Retried','Govt Employee', 'Private Employee','Self Employee']
+		mother_occ_list = ['Retried','Govt Employee', 'Private Employee','Home Maker']
 		response = {
 					"Height": height_list,
 					"Religion":religion_list,
@@ -266,6 +277,8 @@ class droplistDetails(APIView):
 					"Rasi": rasi_list,
 					"Age": [i for i in range(18,61)],
 					"Stars": star_list,
+					"Mother_Occ": mother_occ_list,
+					"Father_Occ":father_occ_list,
 					}
 		return Response(response, status=status.HTTP_200_OK)
 
@@ -352,14 +365,12 @@ class ViewdMatches(APIView):
 class PPView(APIView):
 	def get(self, request):
 		user_id = request.GET.get('user_id')
-		userId = request.data.get('partner_user_id')
 		response = {}
 		try:
 				user_basic_obj = UserBasicDetails.objects.get(user__id = user_id)
 				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
 		except ObjectDoesNotExist:
 				return Response({"message":"UserDetail ObjectDoesNotExist"})
-
 		serializer2=Partner_PreferencesSerialzers(user_pp,many=False)
 		response.update(serializer2.data)
 		return Response(response,status=status.HTTP_200_OK)
@@ -417,8 +428,7 @@ class SearchingPPView(APIView):
 		try:
 			main_user = UserBasicDetails.objects.get(user__id = main_user_id)
 			main_user_full = UserFullDetails.objects.get(basic_details__id=main_user.id)
-			user_full_obj = UserFullDetails.objects.filter(height__range= [int(data['min_height']), int(data['max_height'])],
-															physical_status = data['physical_status'],
+			user_full_obj = UserFullDetails.objects.filter(	physical_status = data['physical_status'],
 															marital_status = data['marital_status'],
 															mother_tongue = data['mother_tongue'],
 															occupation = data['occupation'],
@@ -433,14 +443,15 @@ class SearchingPPView(APIView):
 															citizenship =data['citizenship'])
 			for dt in user_full_obj:
 				if main_user.user.id != dt.basic_details.user.id and  main_user_full.gender != dt.gender:
-					if calculate_age(dt.dateofbirth) in range(data['min_age'],data['max_age']):
-						user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
-						serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=True)
-						response[dt.id] = serializer1.data
-						user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
-						serializer2=UserFullDetailsSerialzers(user_full,many=True)
-						response[dt.id].update({"age":calculate_age(dt.dateofbirth)})
-						response[dt.id].update(serializer2.data)
+					if calculate_age(dt.dateofbirth) in range(int(data['min_age']),int(data['max_age'])):
+						if height_range(dt.height) in [p/10 for p in range(height_replaced(data['min_height']), height_replaced(data['max_height']))]:
+							user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
+							serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
+							response[dt.id] = serializer1.data
+							user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+							serializer2=UserFullDetailsSerialzers(user_full,many=False)
+							response[dt.id].update({"age":calculate_age(dt.dateofbirth)})
+							response[dt.id].update(serializer2.data)
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		return Response(response.values(),status=status.HTTP_200_OK)
@@ -485,3 +496,16 @@ class UgPgMatchesView(APIView):
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		return Response(response.values(),status=status.HTTP_200_OK)
+
+
+# class PPMatchingView(APIView):
+# 	def get(self, request):
+# 		main_user_id = request.GET.get('user_id')
+# 		partner_user_id = request.data.get('partner_user_id')
+# 		response = {}
+# 		True_list = []
+# 		main_user = Partner_Preferences.objects.get(basic_details__user__id=main_user_id)
+# 		partner_user = Partner_Preferences.objects.get(basic_details__user__id=partner_user_id)
+
+		
+# 		return Response(response,status=status.HTTP_200_OK)
