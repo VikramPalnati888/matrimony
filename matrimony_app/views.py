@@ -42,12 +42,15 @@ def calculate_age(born):
 
 def height_range(height):
 	ht = height.replace('’','.')
-	return ht
+	return float(ht)
 
-def height_replaced(height):
+def min_height_replaced(height):
 	ht = height.replace('’','')
-	return ht
+	return int(ht)
 
+def max_height_replaced(height):
+	ht = height.replace('’','')
+	return int(ht)
 class Login(APIView):
 
 	def post(self,request,format = "json"):
@@ -450,7 +453,7 @@ class SearchingPPView(APIView):
 			for dt in user_full_obj:
 				if main_user.user.id != dt.basic_details.user.id and  main_user_full.gender != dt.gender:
 					if calculate_age(dt.dateofbirth) in range(int(data['min_age']),int(data['max_age'])):
-						if height_range(dt.height) in [p/10 for p in range(height_replaced(data['min_height']), height_replaced(data['max_height']))]:
+						if height_range(dt.height) in [p/10 for p in range(min_height_replaced(data['min_height']), max_height_replaced(data['max_height']))]:
 							user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
 							serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
 							response[dt.id] = serializer1.data
