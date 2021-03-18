@@ -256,6 +256,9 @@ class droplistDetails(APIView):
 						"Purva Bhadrapada","Uttara Bhādrapadā","Revati","Abhijit"]
 		father_occ_list = ['Retried','Govt Employee', 'Private Employee','Self Employee']
 		mother_occ_list = ['Retried','Govt Employee', 'Private Employee','Home Maker']
+		food_hobbit_list = ['Vegetarian','Non Vegetarian']
+		drink_hobbit_list = ['Yes','No']
+		smoke_hobbit_list = ['Smoke','Not Smoking'] 
 		response = {
 					"Height": height_list,
 					"Religion":religion_list,
@@ -279,6 +282,9 @@ class droplistDetails(APIView):
 					"Stars": star_list,
 					"Mother_Occ": mother_occ_list,
 					"Father_Occ":father_occ_list,
+					"Food_Hobbit":food_hobbit_list,
+					"Drink_Hobbit":drink_hobbit_list,
+					"Smoke_Hobbit":smoke_hobbit_list,
 					}
 		return Response(response, status=status.HTTP_200_OK)
 
@@ -507,5 +513,5 @@ class UgPgMatchesView(APIView):
 # 		main_user = Partner_Preferences.objects.get(basic_details__user__id=main_user_id)
 # 		partner_user = Partner_Preferences.objects.get(basic_details__user__id=partner_user_id)
 
-		
+
 # 		return Response(response,status=status.HTTP_200_OK)
