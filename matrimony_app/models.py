@@ -119,7 +119,9 @@ class Partner_Preferences(models.Model):
 	country = models.CharField(max_length=100,null=True)
 	citizenship = models.CharField(max_length=100,null=True)
 
-
+	def __str__(self):
+		return "%s" %(self.basic_details.id)
+		
 class Country(models.Model):
 	country= models.CharField(max_length=20)
 
