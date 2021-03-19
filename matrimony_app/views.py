@@ -453,7 +453,9 @@ class SearchingPPView(APIView):
 			for dt in user_full_obj:
 				if main_user.user.id != dt.basic_details.user.id and  main_user_full.gender != dt.gender:
 					if calculate_age(dt.dateofbirth) in range(int(data['min_age']),int(data['max_age'])):
-						if height_range(dt.height) in [p/10 for p in range(min_height_replaced(data['min_height']), max_height_replaced(data['max_height']))]:
+						height_range_array = np.arange(min_height_replaced(data['min_height']), max_height_replaced(data['max_height']), 0.1)
+						height_range_list = list(height_range_array)
+						if height_range(dt.height) in height_range_list:
 							user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
 							serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
 							response[dt.id] = serializer1.data
