@@ -20,7 +20,7 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 import ast
-import decimal
+import numpy as np
 
 def generate_otp():
 	"""Generating 4 digits OTP automatically"""
@@ -40,17 +40,27 @@ def calculate_age(born):
 	age = today.year - int(born_year) - ((today.month, today.day) < (int(born_month), int(born_date)))
 	return age
 
-def height_range(height):
+def height_replaced(height):
 	ht = height.replace('’','.')
 	return float(ht)
 
 def min_height_replaced(height):
-	ht = height.replace('’','')
-	return int(ht)
+	ht = height.replace('’','.')
+	return float(ht)
 
 def max_height_replaced(height):
-	ht = height.replace('’','')
-	return int(ht)
+	ht = height.replace('’','.')
+	return float(ht)
+
+def height_range(min_height,max_height):
+	return_height = []
+	height_list = [4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 4.8, 4.9, 4.10, 4.11, 5.0, 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8,
+					5.9, 5.10, 5.11, 6.0, 6.1, 6.2]
+	for i in height_list:
+		if min_height < i < max_height:
+			return_height.append(i)
+	return return_height
+
 class Login(APIView):
 
 	def post(self,request,format = "json"):
@@ -450,12 +460,12 @@ class SearchingPPView(APIView):
 															state = data['state'],
 															country = data['country'],
 															citizenship =data['citizenship'])
+			print(user_full_obj,"sssssss")
 			for dt in user_full_obj:
 				if main_user.user.id != dt.basic_details.user.id and  main_user_full.gender != dt.gender:
 					if calculate_age(dt.dateofbirth) in range(int(data['min_age']),int(data['max_age'])):
-						height_range_array = np.arange(min_height_replaced(data['min_height']), max_height_replaced(data['max_height']), 0.1)
-						height_range_list = list(height_range_array)
-						if height_range(dt.height) in height_range_list:
+						if height_replaced(dt.height) in height_range(min_height_replaced(data['min_height']),max_height_replaced(data['max_height'])):
+							print("dddddddddddddddddddddddddd",height_replaced(dt.height))
 							user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
 							serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
 							response[dt.id] = serializer1.data
