@@ -20,7 +20,7 @@ from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 import ast
-import numpy as np
+from django.forms.models import model_to_dict
 
 def generate_otp():
 	"""Generating 4 digits OTP automatically"""
@@ -243,61 +243,33 @@ class UserFullDetailsView(APIView):
 
 class droplistDetails(APIView):
 	def get(self,request):
-		gender_list = ["Male","Female","Others"]
-		height_list = ["4’6","4’7","4’8","4’9","4’10","4’11","5’0",
-						"5’1","5’2","5’3","5’4","5’5","5’6","5’7",
-						"5’8","5’9","5’10","5’11","6’0"]
-		religion_list = ["Hindu","Muslim","Christan","Sikh","Budhist","Jain","Other Religion"]
-		qualification_list = ["B.tech","Degree","Inter","BE","10th","Others"]
-		caste_list = ["BC","OC","SC","ST","GENERAL","OTEHRS"]
-		profession_list = ["Software Developer","Software Engineer","Teacher","Driver","Govt Job","Police"]
-		citizen_list = ["Indian","USA","Sweden","Uk"]
-		created_by_list = ["Father","Mother","Brother","sister","Grand Father","Grand Mother"]
-		mother_tongue_list = ["Telugu","Hindi","Tamil","kannada"]
-		physical_status_list = ["Yes","No"]
-		marital_status_list = ["Married","Single"]
-		annual_income_list = ["1-2","2-3","3-4","5-6","6-7","7+"]
-		family_type_list = ["Lower class","Middle class","High class"]
-		birth_place_list = ["Hyderabad","Warangal","Karimanagr","Medak"]
-		under_graduation_list = ["BA","BE","Btech","Bcom"]
-		post_graduation_list = ["MA","MBA","MCA","MCom","None"]
-		super_speciality_list = ["Cardiology","Oncology","Nephrology","Neurology","Endocrinology","None"]
-		rasi_list = ["Maish","Vrish","Mithun","Kark","Singh","Kanya","Tula","Vrishchik","Dhanu","Makar","Kumbh","Meen"]
-		star_list = ["Ashvini","Bharani","Krittika","Rohini","Mrigashīrsha","Ardra","Punarvasu","Pushya","Āshleshā",
-						"Maghā","Pūrva Phalgunī","Uttara Phalgunī","Hasta","Chitra","Swāti","Vishakha","Anusham Anuradha","Jyeshtha"
-						,"Mula","Purva Ashadha","Uttara Ashadha","Sravana","Dhanishta","Shatabhisha",
-						"Purva Bhadrapada","Uttara Bhādrapadā","Revati","Abhijit"]
-		father_occ_list = ['Retried','Govt Employee', 'Private Employee','Self Employee']
-		mother_occ_list = ['Retried','Govt Employee', 'Private Employee','Home Maker']
-		food_hobbit_list = ['Vegetarian','Non Vegetarian']
-		drink_hobbit_list = ['Yes','No']
-		smoke_hobbit_list = ['Smoke','Not Smoking'] 
 		response = {
-					"Height": height_list,
-					"Religion":religion_list,
-					"Qualification":qualification_list,
-					"Gender":gender_list,
-					"Caste":caste_list,
-					"Profession":profession_list,
-					"Citizen":citizen_list,
-					"Created_by":created_by_list,
-					"Mother_Tongue":mother_tongue_list,
-					"Physical_status":physical_status_list,
-					"Marital_status":marital_status_list,
-					"Annual_income":annual_income_list,
-					"Family_type":family_type_list,
-					"Birth_place":birth_place_list,
-					"Under_graduation":under_graduation_list,
-					"Post_graduation":post_graduation_list,
-					"Super_speciality":super_speciality_list,
-					"Rasi": rasi_list,
-					"Age": [i for i in range(18,61)],
-					"Stars": star_list,
-					"Mother_Occ": mother_occ_list,
-					"Father_Occ":father_occ_list,
-					"Food_Hobbit":food_hobbit_list,
-					"Drink_Hobbit":drink_hobbit_list,
-					"Smoke_Hobbit":smoke_hobbit_list,
+					"Height": [h.height for h in Height.objects.all()],
+					"Religion":[rel.religion for rel in Religion.objects.all()],
+					"Qualification":[qual.qualification for qual in Qualification.objects.all()],
+					"Gender":[gen.gender for gen in Gender.objects.all()],
+					"Caste":[cast.caste for cast in Caste.objects.all()],
+					"Profession":[pro.profession for pro in Profession.objects.all()],
+					"Citizen":[cit.citizen for cit in Citizen.objects.all()],
+					"Created_by":[cb.created_by for cb in Created_by.objects.all()],
+					"Mother_Tongue":[mt.mother_Tongue for mt in Mother_Tongue.objects.all()],
+					"Physical_status":[ps.physical_status for ps in Physical_status.objects.all()],
+					"Marital_status":[ms.marital_status for ms in Marital_status.objects.all()],
+					"Annual_income":[ai.annual_income for ai in Annual_income.objects.all()],
+					"Family_type":[ft.family_type for ft in Family_type.objects.all()],
+					"Birth_place":[bp.birth_place for bp in Birth_place.objects.all()],
+					"Under_graduation":[ug.under_graduation for ug in Under_graduation.objects.all()],
+					"Post_graduation":[pg.post_graduation for pg in Post_graduation.objects.all()],
+					"Super_speciality":[ss.super_speciality for ss in Super_speciality.objects.all()],
+					"Rasi": [r.rasi for r in Rasi.objects.all()],
+					"Age": [a.age for a in Age.objects.all()],
+					"Stars": [s.stars for s in Stars.objects.all()],
+					"Mother_Occ": [mo.mother_Occ for mo in Mother_Occ.objects.all()],
+					"Father_Occ":[fo.father_Occ for fo in Father_Occ.objects.all()],
+					"Food_Hobbit":[fh.food_Hobbit for fh in Food_Hobbit.objects.all()],
+					"Drink_Hobbit":[dh.drink_Hobbit for dh in Drink_Hobbit.objects.all()],
+					"Smoke_Hobbit":[smoke.smoke_Hobbit for smoke in Smoke_Hobbit.objects.all()],
+					"Job_sector":[job.job_sector for job in Job_sector.objects.all()],
 					}
 		return Response(response, status=status.HTTP_200_OK)
 
@@ -315,9 +287,264 @@ class StatesList(APIView):
 
 class CitiesList(APIView):
 	def get(self,request):
-		queryset = City.objects.filter(state__id=request.GET.get('state_id'))
+		state_id = request.GET.get('state_id')
+		state_name = request.GET.get('state_name')
+		if state_id:
+			queryset = City.objects.filter(state__id=state_id)
+		else:
+			queryset = City.objects.filter(state__state=state_name)
 		response=CitySerializer(queryset,many=True)
 		return Response(response.data, status=status.HTTP_200_OK)
+
+class ReligionView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = ReligionSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Job_sectorView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Job_sectorSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Marital_statusView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Marital_statusSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Mother_OccView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Mother_OccSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Physical_statusView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Physical_statusSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Mother_TongueView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Mother_TongueSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Post_graduationView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Post_graduationSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+	def get(self, request):
+		response = {}
+		pg	= Post_graduation.objects.all()
+		for dt in pg:
+			response[dt.id] = {'id':dt.id,
+								'post_graduation':dt.post_graduation}
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+class ProfessionView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = ProfessionSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class QualificationView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = QualificationSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RasiView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = RasiSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Smoke_HobbitView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Smoke_HobbitSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class StarsView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = StarsSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Super_specialityView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Super_specialitySerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Under_graduationView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Under_graduationSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+	def get(self, request):
+		response = {}
+		ug	= Under_graduation.objects.all()
+		for dt in ug:
+			response[dt.id] = {'id':dt.id,
+								'under_graduation':dt.under_graduation}
+		return Response(response.values(),status=status.HTTP_200_OK)
+		
+class CasteView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = CasteSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Birth_placeView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Birth_placeSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Annual_incomeView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Annual_incomeSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CitizenView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = CitizenSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Created_byView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Created_bySerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Drink_HobbitView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Drink_HobbitSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Family_typeView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Family_typeSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Father_OccView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Father_OccSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class Food_HobbitView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = Food_HobbitSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GenderView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = GenderSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class HeightView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = HeightSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AgeView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = AgeSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # main Funcationality start from here
 
@@ -460,12 +687,10 @@ class SearchingPPView(APIView):
 															state = data['state'],
 															country = data['country'],
 															citizenship =data['citizenship'])
-			print(user_full_obj,"sssssss")
 			for dt in user_full_obj:
 				if main_user.user.id != dt.basic_details.user.id and  main_user_full.gender != dt.gender:
 					if calculate_age(dt.dateofbirth) in range(int(data['min_age']),int(data['max_age'])):
 						if height_replaced(dt.height) in height_range(min_height_replaced(data['min_height']),max_height_replaced(data['max_height'])):
-							print("dddddddddddddddddddddddddd",height_replaced(dt.height))
 							user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
 							serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
 							response[dt.id] = serializer1.data
@@ -519,14 +744,23 @@ class UgPgMatchesView(APIView):
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 
-# class PPMatchingView(APIView):
-# 	def get(self, request):
-# 		main_user_id = request.GET.get('user_id')
-# 		partner_user_id = request.data.get('partner_user_id')
-# 		response = {}
-# 		True_list = []
-# 		main_user = Partner_Preferences.objects.get(basic_details__user__id=main_user_id)
-# 		partner_user = Partner_Preferences.objects.get(basic_details__user__id=partner_user_id)
-
-
-# 		return Response(response,status=status.HTTP_200_OK)
+class PPMatchingView(APIView):
+	def get(self, request):
+		main_user_id = request.GET.get('user_id')
+		partner_user_id = request.data.get('partner_user_id')
+		response = {}
+		True_false_list = []
+		main_user_age = ''
+		main_user_height = ''
+		partner_user_age = ''
+		partner_user_height = ''
+		main_user = Partner_Preferences.objects.filter(basic_details__user__id=main_user_id).values()
+		partner_user = Partner_Preferences.objects.filter(basic_details__user__id=partner_user_id).values()
+		for index , keys in enumerate(main_user):
+			del keys['basic_details_id'], keys['id'],keys['min_age'],keys['max_age'],keys['min_height'],keys['max_height']
+			for k,v in keys.items():
+				if main_user[0][k] == partner_user[0][k]:
+					response['v']= {k : True}
+				else:
+					response['v'].update({k : False})
+		return Response(response.values(),status=status.HTTP_200_OK)

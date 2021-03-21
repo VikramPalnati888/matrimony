@@ -121,7 +121,7 @@ class Partner_Preferences(models.Model):
 
 	def __str__(self):
 		return "%s" %(self.basic_details.id)
-		
+
 class Country(models.Model):
 	country= models.CharField(max_length=20)
 
@@ -147,8 +147,218 @@ class City(models.Model):
 
 	class Meta:
 			unique_together = ("city",)
+
 	def __str__(self):
 		return self.city
+
+class Height(models.Model):
+
+	height=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('height',)	
+	def __str__(self):
+		return self.city
+
+class Religion(models.Model):
+
+	religion=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('religion',)	
+	def __str__(self):
+		return self.city
+
+class Qualification(models.Model):
+
+	qualification=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('qualification',)	
+	def __str__(self):
+		return self.qualification
+
+class Under_graduation(models.Model):
+
+	under_graduation=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('under_graduation',)	
+	def __str__(self):
+		return self.qualification
+
+class Post_graduation(models.Model):
+
+	post_graduation=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('post_graduation',)	
+	def __str__(self):
+		return self.post_graduation
+
+class Super_speciality(models.Model):
+
+	super_speciality=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('super_speciality',)	
+	def __str__(self):
+		return self.super_speciality
+
+class Rasi(models.Model):
+
+	rasi=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('rasi',)	
+	def __str__(self):
+		return self.rasi
+
+class Age(models.Model):
+
+	age=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('age',)	
+	def __str__(self):
+		return self.age
+
+class Stars(models.Model):
+
+	stars=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('stars',)	
+	def __str__(self):
+		return self.stars
+
+class Mother_Occ(models.Model):
+
+	mother_Occ=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('mother_Occ',)	
+	def __str__(self):
+		return self.mother_Occ
+
+class Father_Occ(models.Model):
+
+	father_Occ=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('father_Occ',)	
+	def __str__(self):
+		return self.father_Occ
+
+class Food_Hobbit(models.Model):
+
+	food_Hobbit=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('food_Hobbit',)	
+	def __str__(self):
+		return self.food_Hobbit
+
+class Drink_Hobbit(models.Model):
+
+	drink_Hobbit=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('drink_Hobbit',)	
+	def __str__(self):
+		return self.drink_Hobbit
+
+class Smoke_Hobbit(models.Model):
+
+	smoke_Hobbit=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('smoke_Hobbit',)	
+	def __str__(self):
+		return self.smoke_Hobbit
+
+class Job_sector(models.Model):
+
+	job_sector=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('job_sector',)	
+	def __str__(self):
+		return self.job_sector
+
+class Gender(models.Model):
+
+	gender=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('gender',)	
+	def __str__(self):
+		return self.gender
+
+class Caste(models.Model):
+
+	caste=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('caste',)	
+	def __str__(self):
+		return self.caste
+
+
+class Annual_income(models.Model):
+
+	annual_income=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('annual_income',)	
+	def __str__(self):
+		return self.annual_income
+
+class Marital_status(models.Model):
+
+	marital_status=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('marital_status',)	
+	def __str__(self):
+		return self.marital_status
+
+class Physical_status(models.Model):
+
+	physical_status=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('physical_status',)	
+	def __str__(self):
+		return self.physical_status
+
+class Mother_Tongue(models.Model):
+
+	mother_Tongue=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('mother_Tongue',)	
+	def __str__(self):
+		return self.mother_Tongue
+
+class Created_by(models.Model):
+
+	created_by=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('created_by',)	
+	def __str__(self):
+		return self.created_by
+
+class Citizen(models.Model):
+
+	citizen=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('citizen',)	
+	def __str__(self):
+		return self.citizen
+
+class Profession(models.Model):
+
+	profession=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('profession',)	
+	def __str__(self):
+		return self.profession
+
+class Birth_place(models.Model):
+
+	birth_place=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('birth_place',)	
+	def __str__(self):
+		return self.birth_place
+
+class Family_type(models.Model):
+
+	family_type=models.CharField(max_length=20)
+	class Meta:
+		unique_together = ('family_type',)	
+	def __str__(self):
+		return self.family_type
 
 # class requests(models.Model):
 
