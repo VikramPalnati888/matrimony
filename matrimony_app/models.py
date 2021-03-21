@@ -27,9 +27,9 @@ class UserFullDetails(models.Model):
 	body_type	= models.CharField(max_length=100,null=True)
 	marital_status	= models.CharField(max_length=100,null=True)
 	mother_tongue = models.CharField(max_length=100,null=True)
-	food_type	= models.CharField(max_length=100,null=True)
-	drink_habbit	= models.CharField(max_length=100,null=True)
-	smoke_habbit	= models.CharField(max_length=100,null=True)
+	diet_preference	= models.CharField(max_length=100,null=True)
+	drinking_habbit	= models.CharField(max_length=100,null=True)
+	smoking_habbit	= models.CharField(max_length=100,null=True)
 	
 #birth & religious
 	birth_time	= models.CharField(max_length=100,null=True)
@@ -104,6 +104,8 @@ class Partner_Preferences(models.Model):
 	smoking_habbit = models.CharField(max_length=100,null=True)
 # birth & religious
 	caste = models.CharField(max_length=100,null=True)
+	sub_caste = models.CharField(max_length=100,null=True)
+	gotram = models.CharField(max_length=100,null=True)
 	religion = models.CharField(max_length=100,null=True)
 	star = models.CharField(max_length=100,null=True)
 # education & profession

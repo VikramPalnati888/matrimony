@@ -21,6 +21,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.conf import settings
 import ast
 from django.forms.models import model_to_dict
+from collections import ChainMap
 
 def generate_otp():
 	"""Generating 4 digits OTP automatically"""
@@ -706,12 +707,12 @@ class UgPgMatchesView(APIView):
 	def get(self, request):
 		response = {}
 		user_id = request.GET.get('user_id')
-		under_graduation_name = request.data.get('ug_name')
-		post_graduation_name = request.data.get('pg_name')
-		ug = request.data.get('ug')
-		pg = request.data.get('pg')
-		lc = request.data.get('lc')
-		location_based = request.data.get('location')
+		under_graduation_name = request.GET.get('ug_name')
+		post_graduation_name = request.GET.get('pg_name')
+		ug = request.GET.get('ug')
+		pg = request.GET.get('pg')
+		lc = request.GET.get('lc')
+		location_based = request.GET.get('location')
 		try:
 			main_user = UserBasicDetails.objects.get(user__id = user_id)
 			main_user_full = UserFullDetails.objects.get(basic_details__id=main_user.id)
@@ -749,18 +750,19 @@ class PPMatchingView(APIView):
 		main_user_id = request.GET.get('user_id')
 		partner_user_id = request.data.get('partner_user_id')
 		response = {}
-		True_false_list = []
-		main_user_age = ''
-		main_user_height = ''
-		partner_user_age = ''
-		partner_user_height = ''
 		main_user = Partner_Preferences.objects.filter(basic_details__user__id=main_user_id).values()
-		partner_user = Partner_Preferences.objects.filter(basic_details__user__id=partner_user_id).values()
+		partner_user = UserFullDetails.objects.filter(basic_details__user__id=partner_user_id).values()
 		for index , keys in enumerate(main_user):
+			age = [{'age': True} if calculate_age(partner_user[0]['dateofbirth']) in range(int(keys['min_age']),int(keys['max_age'])) else {'age': False}]
+			age.append({'height': True} if height_replaced(partner_user[0]['height']) in height_range(min_height_replaced(keys['min_height']),max_height_replaced(keys['max_height'])) else {'height': False})
 			del keys['basic_details_id'], keys['id'],keys['min_age'],keys['max_age'],keys['min_height'],keys['max_height']
-			for k,v in keys.items():
-				if main_user[0][k] == partner_user[0][k]:
-					response['v']= {k : True}
-				else:
-					response['v'].update({k : False})
-		return Response(response.values(),status=status.HTTP_200_OK)
+			user_full_details = dict(ChainMap(*[{k : True} if main_user[0][k] == partner_user[0][k] else {k:False} for k,v in keys.items()]))
+		details = user_full_details
+		age_height = dict(ChainMap(*age))
+		response.update(details)
+		response.update(age_height)
+		total = len(response)
+		true_total = len([j for i, j in response.items() if j == True])
+		percentage = true_total / total *100
+		response.update({"matching_percentage":int(percentage)})
+		return Response(response,status=status.HTTP_200_OK)
