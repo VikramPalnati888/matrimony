@@ -13,6 +13,11 @@ class UserFullDetailsSerialzers(serializers.ModelSerializer):
 		model=UserFullDetails
 		fields = '__all__'
 
+class LikedStatusSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = LikedStatus
+		fields = '__all__'
+
 class ViewdDetailsSerialzers(serializers.ModelSerializer):
 	class Meta:
 		model=Viewed_matches

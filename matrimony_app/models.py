@@ -89,6 +89,14 @@ class Viewed_matches(models.Model):
 	def __str__(self):
 		return "%s"%(self.user)
 
+class LikedStatus(models.Model):
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	user_liked = models.CharField(max_length=100,null=True)
+	LikedStatus = models.BooleanField(default=True)
+
+	def __str__(self):
+		return "%s" %(self.user.id)
+
 class Partner_Preferences(models.Model):
 	basic_details = models.ForeignKey(UserBasicDetails, on_delete=models.CASCADE)
 # basic details

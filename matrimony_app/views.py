@@ -566,9 +566,58 @@ class NewMatches(APIView):
 						serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
 						response[dt.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
 						response[dt.id].update(serializer2.data)
+
 		except  Exception as e:
+			print(e)
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		return Response(response.values(),status=status.HTTP_200_OK)
+
+
+class LikeView(APIView):
+	def post(self, request):
+		user_id = request.GET.get('user_id')
+		lu_id = request.data.get('liked_user_id')
+		ls = request.data.get('liked_status')
+		instance = User.objects.get(id=user_id)
+		if ls == 'True':
+			try:
+				ls_obj = LikedStatus.objects.get(user=instance,user_liked=lu_id)
+				ls_obj.LikedStatus = True
+				ls_obj.save()
+				return Response({"message":"already liked",
+									"status":True})
+			except Exception as e:
+				LikedStatus.objects.create(user=instance,user_liked=lu_id,LikedStatus=True)
+				return Response({"message":"liked",
+								"status":True})
+		else:
+			ls_obj = LikedStatus.objects.get(user=instance,user_liked=lu_id)
+			ls_obj.LikedStatus = False
+			ls_obj.save()
+			return Response({"message":"unliked",
+							"status": False})
+	def get(self, request):
+		response = {}
+		user_id = request.GET.get('user_id')
+		try:
+			liked_obj = LikedStatus.objects.filter(user__id=user_id)
+			for liked_data in liked_obj:
+				user_basic_obj = UserBasicDetails.objects.get(user = int(liked_data.user_liked))
+				serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
+				response[int(liked_data.user_liked)] = serializer1.data
+				
+				user_full_obj = UserFullDetails.objects.get(basic_details=user_basic_obj)
+				serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+				response[int(liked_data.user_liked)].update({"age":calculate_age(user_full_obj.dateofbirth)})
+				response[int(liked_data.user_liked)].update(serializer2.data)
+				
+				liked_details_obj = LikedStatus.objects.get(user_liked = int(liked_data.user_liked))
+				serializer3=ViewdDetailsSerialzers(liked_details_obj,many=False)
+				response[int(liked_data.user_liked)].update(serializer3.data)
+		except  Exception as e:
+			print(e)
+			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		return Response(response.values(),status=status.HTTP_200_OK)	
 
 class ViewdMatches(APIView):
 	def post(self, request):
@@ -668,7 +717,7 @@ class SearchingView(APIView):
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 class SearchingPPView(APIView):
-	def get(self, request):
+	def post(self, request):
 		response = {}
 		main_user_id = request.GET.get('user_id')
 		data = request.data
@@ -748,7 +797,7 @@ class UgPgMatchesView(APIView):
 class PPMatchingView(APIView):
 	def get(self, request):
 		main_user_id = request.GET.get('user_id')
-		partner_user_id = request.data.get('partner_user_id')
+		partner_user_id = request.GET.get('partner_user_id')
 		response = {}
 		main_user = Partner_Preferences.objects.filter(basic_details__user__id=main_user_id).values()
 		partner_user = UserFullDetails.objects.filter(basic_details__user__id=partner_user_id).values()

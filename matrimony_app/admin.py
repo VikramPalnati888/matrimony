@@ -15,4 +15,4 @@ admin.site.register(Partner_Preferences)
 admin.site.register(Country)
 admin.site.register(State)
 admin.site.register(City)
-
+admin.site.register(LikedStatus)
