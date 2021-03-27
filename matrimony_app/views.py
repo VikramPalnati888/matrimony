@@ -581,8 +581,7 @@ class LikeView(APIView):
 		instance = User.objects.get(id=user_id)
 		try:
 			ls_obj = LikedStatus.objects.get(user=instance,user_liked=lu_id)
-			ls_obj.LikedStatus = False
-			ls_obj.save()
+			ls_obj.delete()
 			return Response({"message":"unliked",
 							"status": False})
 		except Exception as e:
