@@ -579,23 +579,16 @@ class LikeView(APIView):
 		lu_id = request.data.get('liked_user_id')
 		ls = request.data.get('liked_status')
 		instance = User.objects.get(id=user_id)
-		if ls == 'True':
-			try:
-				ls_obj = LikedStatus.objects.get(user=instance,user_liked=lu_id)
-				ls_obj.LikedStatus = True
-				ls_obj.save()
-				return Response({"message":"already liked",
-									"status":True})
-			except Exception as e:
-				LikedStatus.objects.create(user=instance,user_liked=lu_id,LikedStatus=True)
-				return Response({"message":"liked",
-								"status":True})
-		else:
+		try:
 			ls_obj = LikedStatus.objects.get(user=instance,user_liked=lu_id)
 			ls_obj.LikedStatus = False
 			ls_obj.save()
 			return Response({"message":"unliked",
 							"status": False})
+		except Exception as e:
+			LikedStatus.objects.create(user=instance,user_liked=lu_id,LikedStatus=True)
+			return Response({"message":"liked",
+							"status":True})
 	def get(self, request):
 		response = {}
 		user_id = request.GET.get('user_id')
@@ -702,7 +695,7 @@ class SearchingView(APIView):
 	def get(self, request):
 		response = {}
 		main_user_id = request.GET.get('user_id')
-		mId = request.data.get('matrimony_id')
+		mId = request.GET.get('matrimony_id')
 		try:
 			if mId:
 				user_basic_obj = UserBasicDetails.objects.get(matrimony_id = mId)
