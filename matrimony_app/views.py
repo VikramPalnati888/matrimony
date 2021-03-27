@@ -691,7 +691,7 @@ class PPView(APIView):
 
 
 class SearchingView(APIView):
-	def get(self, request):
+	def post(self, request):
 		response = {}
 		main_user_id = request.GET.get('user_id')
 		mId = request.GET.get('matrimony_id')
