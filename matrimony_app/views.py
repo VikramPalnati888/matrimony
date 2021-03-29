@@ -190,11 +190,11 @@ class UserFullDetailsView(APIView):
 		response[main_user_id].update(serializer2.data)
 		try:
 			if userId:
-				liked_obj = LikedStatus.objects.get(user__id=userId)
-				response[main_user_id].update({"LikedStatus":liked_details_obj.LikedStatus})
+				liked_obj = LikedStatus.objects.get(user_liked=userId)
+				response[main_user_id].update({"LikedStatus":liked_obj.LikedStatus})
 			else:
-				liked_obj = LikedStatus.objects.get(user__id=main_user_id)
-				response[main_user_id].update({"LikedStatus":liked_details_obj.LikedStatus})
+				liked_obj = LikedStatus.objects.get(user_liked=main_user_id)
+				response[main_user_id].update({"LikedStatus":liked_obj.LikedStatus})
 		except Exception as e:
 			response[main_user_id].update({"LikedStatus":False})
 		return Response(response.values(),status=status.HTTP_200_OK)
@@ -659,7 +659,7 @@ class ViewdMatches(APIView):
 				serializer3=ViewdDetailsSerialzers(viewed_details_obj,many=False)
 				response[int(viewed_data.viewed_user_id)].update({'viewd_status':viewed_data.viewd_status})
 				try:
-					liked_obj = LikedStatus.objects.get(user_liked =int(viewed_data.viewed_user_id))
+					liked_obj = LikedStatus.objects.get(user_liked = viewed_data.viewed_user_id)
 					response[liked_obj.user.id].update({"LikedStatus":liked_obj.LikedStatus})
 				except Exception as e:
 					print(e)
@@ -800,7 +800,11 @@ class UgPgMatchesView(APIView):
 					serializer2=UserFullDetailsSerialzers(user_full, many=False)
 					response[int(dt.id)].update({"age":calculate_age(dt.dateofbirth)})
 					response[int(dt.id)].update(serializer2.data)
-					
+					try:
+						liked_obj = LikedStatus.objects.get(user_liked =dt.basic_details.user.id)
+						response[int(dt.id)].update({"LikedStatus":liked_obj.LikedStatus})
+					except Exception as e:
+						response[int(dt.id)].update({"LikedStatus":False})					
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		return Response(response.values(),status=status.HTTP_200_OK)
