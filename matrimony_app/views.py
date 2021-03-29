@@ -182,11 +182,21 @@ class UserFullDetailsView(APIView):
 				user_qs = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 		except ObjectDoesNotExist:
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
+
 		serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
 		response[main_user_id] = serializer1.data
 		serializer2=UserFullDetailsSerialzers(user_qs,many=False)
 		response[main_user_id].update({"age":calculate_age(user_qs.dateofbirth)})
 		response[main_user_id].update(serializer2.data)
+		try:
+			if userId:
+				liked_obj = LikedStatus.objects.get(user__id=userId)
+				response[main_user_id].update({"LikedStatus":liked_details_obj.LikedStatus})
+			else:
+				liked_obj = LikedStatus.objects.get(user__id=main_user_id)
+				response[main_user_id].update({"LikedStatus":liked_details_obj.LikedStatus})
+		except Exception as e:
+			response[main_user_id].update({"LikedStatus":False})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 	def post(self, request):
@@ -566,7 +576,11 @@ class NewMatches(APIView):
 						serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
 						response[dt.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
 						response[dt.id].update(serializer2.data)
-
+						try:
+							liked_obj = LikedStatus.objects.get(user_liked =int(dt.id))
+							response[dt.id].update({"LikedStatus":liked_obj.LikedStatus})
+						except Exception as e:
+							response[dt.id].update({"LikedStatus":False})
 		except  Exception as e:
 			print(e)
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
@@ -605,7 +619,7 @@ class LikeView(APIView):
 				
 				liked_details_obj = LikedStatus.objects.get(user_liked = int(liked_data.user_liked))
 				serializer3=ViewdDetailsSerialzers(liked_details_obj,many=False)
-				response[int(liked_data.user_liked)].update(serializer3.data)
+				response[int(liked_data.user_liked)].update({"LikedStatus":liked_details_obj.LikedStatus})
 		except  Exception as e:
 			print(e)
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
@@ -634,16 +648,22 @@ class ViewdMatches(APIView):
 			for viewed_data in viewed_obj:
 				user_basic_obj = UserBasicDetails.objects.get(user = int(viewed_data.viewed_user_id))
 				serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
-				response[int(viewed_data.viewed_user_id)] = serializer1.data
+				response[user_basic_obj.user.id] = serializer1.data
 				
 				user_full_obj = UserFullDetails.objects.get(basic_details=user_basic_obj)
 				serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
-				response[int(viewed_data.viewed_user_id)].update({"age":calculate_age(user_full_obj.dateofbirth)})
-				response[int(viewed_data.viewed_user_id)].update(serializer2.data)
+				response[user_full_obj.basic_details.user.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
+				response[user_full_obj.basic_details.user.id].update(serializer2.data)
 				
 				viewed_details_obj = Viewed_matches.objects.get(viewed_user_id = int(viewed_data.viewed_user_id))
 				serializer3=ViewdDetailsSerialzers(viewed_details_obj,many=False)
-				response[int(viewed_data.viewed_user_id)].update(serializer3.data)
+				response[int(viewed_data.viewed_user_id)].update({'viewd_status':viewed_data.viewd_status})
+				try:
+					liked_obj = LikedStatus.objects.get(user_liked =int(viewed_data.viewed_user_id))
+					response[liked_obj.user.id].update({"LikedStatus":liked_obj.LikedStatus})
+				except Exception as e:
+					print(e)
+					response[int(viewed_data.viewed_user_id)].update({"LikedStatus":False})
 		except  Exception as e:
 			print(e)
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
@@ -791,13 +811,13 @@ class PPMatchingView(APIView):
 		main_user_id = request.GET.get('user_id')
 		partner_user_id = request.GET.get('partner_user_id')
 		response = {}
-		main_user = Partner_Preferences.objects.filter(basic_details__user__id=main_user_id).values()
-		partner_user = UserFullDetails.objects.filter(basic_details__user__id=partner_user_id).values()
-		for index , keys in enumerate(main_user):
-			age = [{'age': True} if calculate_age(partner_user[0]['dateofbirth']) in range(int(keys['min_age']),int(keys['max_age'])) else {'age': False}]
-			age.append({'height': True} if height_replaced(partner_user[0]['height']) in height_range(min_height_replaced(keys['min_height']),max_height_replaced(keys['max_height'])) else {'height': False})
+		main_user = UserFullDetails.objects.filter(basic_details__user__id=main_user_id).values()
+		partner_user = Partner_Preferences.objects.filter(basic_details__user__id=partner_user_id).values()
+		for index , keys in enumerate(partner_user):
+			age = [{'age': True} if calculate_age(main_user[0]['dateofbirth']) in range(int(keys['min_age']),int(keys['max_age'])) else {'age': False}]
+			age.append({'height': True} if height_replaced(main_user[0]['height']) in height_range(min_height_replaced(keys['min_height']),max_height_replaced(keys['max_height'])) else {'height': False})
 			del keys['basic_details_id'], keys['id'],keys['min_age'],keys['max_age'],keys['min_height'],keys['max_height']
-			user_full_details = dict(ChainMap(*[{k : True} if main_user[0][k] == partner_user[0][k] else {k:False} for k,v in keys.items()]))
+			user_full_details = dict(ChainMap(*[{k : True} if partner_user[0][k] == main_user[0][k] else {k:False} for k,v in keys.items()]))
 		details = user_full_details
 		age_height = dict(ChainMap(*age))
 		response.update(details)
