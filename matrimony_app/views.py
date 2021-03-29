@@ -660,12 +660,11 @@ class ViewdMatches(APIView):
 				response[int(viewed_data.viewed_user_id)].update({'viewd_status':viewed_data.viewd_status})
 				try:
 					liked_obj = LikedStatus.objects.get(user_liked = viewed_data.viewed_user_id)
-					response[liked_obj.user.id].update({"LikedStatus":liked_obj.LikedStatus})
+					response[int(liked_obj.user_liked)].update({"LikedStatus":liked_obj.LikedStatus})
 				except Exception as e:
 					print(e)
 					response[int(viewed_data.viewed_user_id)].update({"LikedStatus":False})
 		except  Exception as e:
-			print(e)
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
@@ -687,14 +686,21 @@ class PPView(APIView):
 		if not request.POST._mutable:
 			request.POST._mutable = True
 		data = request.data
+		response = {}
 		user_id = request.GET.get('user_id')
 		user_basic_obj = UserBasicDetails.objects.get(user__id = user_id)
 		data['basic_details'] = user_basic_obj.id
-		serializer = Partner_PreferencesSerialzers(data = data)
-		if serializer.is_valid(): 
-			serializer.save()
-			return Response(serializer.data, status=status.HTTP_201_CREATED)
-		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+		try:
+			user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
+			serializer2=Partner_PreferencesSerialzers(user_pp,many=False)
+			response.update(serializer2.data)
+			return Response(response,status=status.HTTP_200_OK)
+		except Exception as e:
+			serializer = Partner_PreferencesSerialzers(data = data)
+			if serializer.is_valid(): 
+				serializer.save()
+				return Response(serializer.data, status=status.HTTP_201_CREATED)
+			return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 	def put(self, request):
 		if not request.POST._mutable:
@@ -801,7 +807,7 @@ class UgPgMatchesView(APIView):
 					response[int(dt.id)].update({"age":calculate_age(dt.dateofbirth)})
 					response[int(dt.id)].update(serializer2.data)
 					try:
-						liked_obj = LikedStatus.objects.get(user_liked =dt.basic_details.user.id)
+						liked_obj = LikedStatus.objects.get(user_liked = dt.basic_details.user.id)
 						response[int(dt.id)].update({"LikedStatus":liked_obj.LikedStatus})
 					except Exception as e:
 						response[int(dt.id)].update({"LikedStatus":False})					
