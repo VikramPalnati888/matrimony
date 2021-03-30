@@ -173,6 +173,7 @@ class UserFullDetailsView(APIView):
 		response = {}
 		userId = request.GET.get('user_id')
 		main_user_id = request.GET.get('main_user_id')
+		liked_user_id = request.GET.get('liked_user_id')
 		try:
 			if userId:
 				user_basic_obj = UserBasicDetails.objects.get(user__id = userId)
@@ -190,10 +191,10 @@ class UserFullDetailsView(APIView):
 		response[main_user_id].update(serializer2.data)
 		try:
 			if userId:
-				liked_obj = LikedStatus.objects.get(user_liked=userId)
+				liked_obj = LikedStatus.objects.get(user__id = liked_user_id,user_liked=userId)
 				response[main_user_id].update({"LikedStatus":liked_obj.LikedStatus})
 			else:
-				liked_obj = LikedStatus.objects.get(user_liked=main_user_id)
+				liked_obj = LikedStatus.objects.get(user__id = liked_user_id,user_liked=main_user_id)
 				response[main_user_id].update({"LikedStatus":liked_obj.LikedStatus})
 		except Exception as e:
 			response[main_user_id].update({"LikedStatus":False})
