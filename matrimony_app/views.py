@@ -577,7 +577,7 @@ class NewMatches(APIView):
 						response[dt.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
 						response[dt.id].update(serializer2.data)
 						try:
-							liked_obj = LikedStatus.objects.get(user_liked =int(dt.id))
+							liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =int(dt.id))
 							response[dt.id].update({"LikedStatus":liked_obj.LikedStatus})
 						except Exception as e:
 							response[dt.id].update({"LikedStatus":False})
@@ -617,7 +617,7 @@ class LikeView(APIView):
 				response[int(liked_data.user_liked)].update({"age":calculate_age(user_full_obj.dateofbirth)})
 				response[int(liked_data.user_liked)].update(serializer2.data)
 				
-				liked_details_obj = LikedStatus.objects.get(user_liked = int(liked_data.user_liked))
+				liked_details_obj = LikedStatus.objects.get(user__id=user_id,user_liked = int(liked_data.user_liked))
 				serializer3=ViewdDetailsSerialzers(liked_details_obj,many=False)
 				response[int(liked_data.user_liked)].update({"LikedStatus":liked_details_obj.LikedStatus})
 		except  Exception as e:
@@ -659,7 +659,7 @@ class ViewdMatches(APIView):
 				serializer3=ViewdDetailsSerialzers(viewed_details_obj,many=False)
 				response[int(viewed_data.viewed_user_id)].update({'viewd_status':viewed_data.viewd_status})
 				try:
-					liked_obj = LikedStatus.objects.get(user_liked = viewed_data.viewed_user_id)
+					liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked = viewed_data.viewed_user_id)
 					response[int(liked_obj.user_liked)].update({"LikedStatus":liked_obj.LikedStatus})
 				except Exception as e:
 					print(e)
@@ -807,7 +807,7 @@ class UgPgMatchesView(APIView):
 					response[int(dt.id)].update({"age":calculate_age(dt.dateofbirth)})
 					response[int(dt.id)].update(serializer2.data)
 					try:
-						liked_obj = LikedStatus.objects.get(user_liked = dt.basic_details.user.id)
+						liked_obj = LikedStatus.objects.get(user__id=user_id, user_liked = dt.basic_details.user.id)
 						response[int(dt.id)].update({"LikedStatus":liked_obj.LikedStatus})
 					except Exception as e:
 						response[int(dt.id)].update({"LikedStatus":False})					

@@ -68,7 +68,7 @@ class UserFullDetails(models.Model):
 	Few_Words_MySelf =  models.TextField()
 
 	def __str__(self):
-		return "%s" %(self.basic_details.id)
+		return "%s" %(self.basic_details.user.id)
 
 class SaveOTP(models.Model):
 
@@ -87,7 +87,7 @@ class Viewed_matches(models.Model):
 	viewd_status = models.BooleanField(default=True)
 	
 	def __str__(self):
-		return "%s"%(self.user)
+		return "%s"%(self.user.id)
 
 class LikedStatus(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -130,7 +130,7 @@ class Partner_Preferences(models.Model):
 	citizenship = models.CharField(max_length=100,null=True)
 
 	def __str__(self):
-		return "%s" %(self.basic_details.id)
+		return "%s" %(self.basic_details.user.id)
 
 class Country(models.Model):
 	country= models.CharField(max_length=20)
