@@ -847,18 +847,32 @@ class MatchesCountView(APIView):
 		user_basic_obj = UserBasicDetails.objects.get(user__id = main_user_id)
 		user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 		if user_full_obj.gender == 'Male':
-			response['caste_count'] = int(UserFullDetails.objects.filter(gender='Female',caste=user_full_obj.caste).count())
-			response['profession_count'] = int(UserFullDetails.objects.filter(gender='Female',occupation=user_full_obj.occupation).count())
-			response['horoscope_count'] = int(UserFullDetails.objects.filter(gender='Female',rashi=user_full_obj.rashi).count())
-			response['under_graduation'] = int(UserFullDetails.objects.all().order_by('under_graduation').count())
-			response['post_graduation'] = int(UserFullDetails.objects.all().order_by('post_graduation').count())
+			response['caste'] = {'caste_count':int(UserFullDetails.objects.filter(gender='Female',caste=user_full_obj.caste).count()),
+								'caste_text':'caste'}
+			response['profession'] = {'profession_count':int(UserFullDetails.objects.filter(gender='Female',occupation=user_full_obj.occupation).count()),
+										'profession_text':'profession'}
+			response['horoscope'] = {'horoscope_count':int(UserFullDetails.objects.filter(gender='Female',rashi=user_full_obj.rashi).count()),
+									'horoscope_text':'horoscope'}
+			response['under_graduation'] = {'under_graduation_count':int(UserFullDetails.objects.filter(gender='Female').order_by('under_graduation').count()),
+											'under_graduation_text':'under_graduation'}
+			response['post_graduation'] = {'post_graduation_count':int(UserFullDetails.objects.filter(gender='Female').order_by('post_graduation').count()),
+											'post_graduation_text':'post_graduation'}
+			response['location'] = {'location_count':int(UserFullDetails.objects.filter(gender='Female',state=user_full_obj.state).count()),
+									'location_text':'location'}
 		else:
-			response['caste_count'] = int(UserFullDetails.objects.filter(gender='Male',caste=user_full_obj.caste).count())
-			response['profession_count'] = int(UserFullDetails.objects.filter(gender='Male',occupation=user_full_obj.occupation).count())
-			response['horoscope_count'] = int(UserFullDetails.objects.filter(gender='Male',rashi=user_full_obj.rashi).count())
-			response['under_graduation'] = int(UserFullDetails.objects.all().order_by('under_graduation').count())
-			response['post_graduation'] = int(UserFullDetails.objects.all().order_by('post_graduation').count())
-		return Response(response,status=status.HTTP_200_OK)
+			response['caste'] = {'caste_count':int(UserFullDetails.objects.filter(gender='Male',caste=user_full_obj.caste).count()),
+								'caste_text':'caste'}
+			response['profession'] = {'profession_count':int(UserFullDetails.objects.filter(gender='Male',occupation=user_full_obj.occupation).count()),
+										'profession_text':'profession'}
+			response['horoscope'] = {'horoscope_count':int(UserFullDetails.objects.filter(gender='Male',rashi=user_full_obj.rashi).count()),
+									'horoscope_text':'horoscope'}
+			response['under_graduation'] = {'under_graduation_count':int(UserFullDetails.objects.filter(gender='Male').order_by('under_graduation').count()),
+											'under_graduation_text':'under_graduation'}
+			response['post_graduation'] = {'post_graduation_count':int(UserFullDetails.objects.filter(gender='Male').order_by('post_graduation').count()),
+											'post_graduation_text':'post_graduation'}
+			response['location'] = {'location_count':int(UserFullDetails.objects.filter(gender='Male',state=user_full_obj.state).count()),
+									'location_text':'location'}
+		return Response(response.values(),status=status.HTTP_200_OK)
 
 class MatchesByCatView(APIView):
 	def get(self, request):
