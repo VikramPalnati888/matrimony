@@ -22,6 +22,10 @@ urlpatterns = [
 				path('ug_pg_matches/',UgPgMatchesView.as_view(), name="Ug & Pg Matches"),
 				path('pp_matches/',PPMatchingView.as_view(), name="Pp Matches"),
 				path('like_unlike/',LikeView.as_view(), name="like status"),
+				path('matchebycat/',MatchesByCatView.as_view(), name="Matches By Cat"),
+				path('matchescount/',MatchesCountView.as_view(), name="Matches count"),
+				path('dailyreco/',DailyRecoView.as_view(), name="daily recommended"),
+				# path('matcheoftheday/',MatcheOfthedayView.as_view(), name="Maatch of the day"),
 
 				path('religion/',ReligionView.as_view(), name="religion"),
 				path('job_sector/',Job_sectorView.as_view(), name="Job sectorView"),

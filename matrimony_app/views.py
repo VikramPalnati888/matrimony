@@ -22,6 +22,7 @@ from django.conf import settings
 import ast
 from django.forms.models import model_to_dict
 from collections import ChainMap
+import random
 
 def generate_otp():
 	"""Generating 4 digits OTP automatically"""
@@ -173,7 +174,7 @@ class UserFullDetailsView(APIView):
 		response = {}
 		userId = request.GET.get('user_id')
 		main_user_id = request.GET.get('main_user_id')
-		liked_user_id = request.GET.get('liked_user_id')
+		login_user_id = request.GET.get('login_user_id')
 		try:
 			if userId:
 				user_basic_obj = UserBasicDetails.objects.get(user__id = userId)
@@ -191,10 +192,10 @@ class UserFullDetailsView(APIView):
 		response[main_user_id].update(serializer2.data)
 		try:
 			if userId:
-				liked_obj = LikedStatus.objects.get(user__id = liked_user_id,user_liked=userId)
+				liked_obj = LikedStatus.objects.get(user__id = login_user_id,user_liked=userId)
 				response[main_user_id].update({"LikedStatus":liked_obj.LikedStatus})
 			else:
-				liked_obj = LikedStatus.objects.get(user__id = liked_user_id,user_liked=main_user_id)
+				liked_obj = LikedStatus.objects.get(user__id = login_user_id,user_liked=main_user_id)
 				response[main_user_id].update({"LikedStatus":liked_obj.LikedStatus})
 		except Exception as e:
 			response[main_user_id].update({"LikedStatus":False})
@@ -838,3 +839,91 @@ class PPMatchingView(APIView):
 		percentage = true_total / total *100
 		response.update({"matching_percentage":int(percentage)})
 		return Response(response,status=status.HTTP_200_OK)
+
+class MatchesCountView(APIView):
+	def get(self, request):
+		response = {}
+		main_user_id = request.GET.get('user_id')
+		user_basic_obj = UserBasicDetails.objects.get(user__id = main_user_id)
+		user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+		if user_full_obj.gender == 'Male':
+			response['caste_count'] = int(UserFullDetails.objects.filter(gender='Female',caste=user_full_obj.caste).count())
+			response['profession_count'] = int(UserFullDetails.objects.filter(gender='Female',occupation=user_full_obj.occupation).count())
+			response['horoscope_count'] = int(UserFullDetails.objects.filter(gender='Female',rashi=user_full_obj.rashi).count())
+			response['under_graduation'] = int(UserFullDetails.objects.all().order_by('under_graduation').count())
+			response['post_graduation'] = int(UserFullDetails.objects.all().order_by('post_graduation').count())
+		else:
+			response['caste_count'] = int(UserFullDetails.objects.filter(gender='Male',caste=user_full_obj.caste).count())
+			response['profession_count'] = int(UserFullDetails.objects.filter(gender='Male',occupation=user_full_obj.occupation).count())
+			response['horoscope_count'] = int(UserFullDetails.objects.filter(gender='Male',rashi=user_full_obj.rashi).count())
+			response['under_graduation'] = int(UserFullDetails.objects.all().order_by('under_graduation').count())
+			response['post_graduation'] = int(UserFullDetails.objects.all().order_by('post_graduation').count())
+		return Response(response,status=status.HTTP_200_OK)
+
+class MatchesByCatView(APIView):
+	def get(self, request):
+		response = {}
+		user_id = request.GET.get('user_id')
+		caste = request.GET.get('caste')
+		horoscope = request.GET.get('horoscope')
+		profession = request.GET.get('profession')
+		subcaste = request.GET.get('subcaste_name')
+		try:
+			main_user = UserBasicDetails.objects.get(user__id = user_id)
+			main_user_full = UserFullDetails.objects.get(basic_details__id=main_user.id)
+
+			if caste == 'caste':
+				user_full_obj = UserFullDetails.objects.filter(caste=main_user_full.caste)
+			elif subcaste:
+				user_full_obj = UserFullDetails.objects.filter(caste=main_user_full.caste,sub_caste=main_user_full.sub_caste)
+			elif horoscope == 'horoscope':
+				user_full_obj = UserFullDetails.objects.filter(rashi=main_user_full.rashi)
+			elif profession == 'profession':
+				user_full_obj = UserFullDetails.objects.filter(occupation=main_user_full.occupation)
+			for dt in user_full_obj:
+				if main_user.user.id != dt.basic_details.user.id and  main_user_full.gender != dt.gender:
+					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
+					serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+					response[int(dt.id)] = serializer1.data
+					user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+					serializer2=UserFullDetailsSerialzers(user_full, many=False)
+					response[int(dt.id)].update({"age":calculate_age(dt.dateofbirth)})
+					response[int(dt.id)].update(serializer2.data)
+					try:
+						liked_obj = LikedStatus.objects.get(user__id=user_id, user_liked = dt.basic_details.user.id)
+						response[int(dt.id)].update({"LikedStatus":liked_obj.LikedStatus})
+					except Exception as e:
+						response[int(dt.id)].update({"LikedStatus":False})					
+		except ObjectDoesNotExist:
+			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+class DailyRecoView(APIView):
+	def get(self, request):
+		response = {}
+		user_id = request.GET.get('user_id')
+		try:
+			user_qs	= User.objects.all().order_by('-id')
+			main_obj = UserFullDetails.objects.get(basic_details__user__id=user_id)
+			for dt in user_qs:
+				if not dt.is_superuser:
+					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.id)
+					user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+					if main_obj.gender != user_full_obj.gender:
+						serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
+						response[dt.id] = serializer1.data
+						serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+						response[dt.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
+						response[dt.id].update(serializer2.data)
+						try:
+							liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =int(dt.id))
+							response[dt.id].update({"LikedStatus":liked_obj.LikedStatus})
+						except Exception as e:
+							response[dt.id].update({"LikedStatus":False})
+		except  Exception as e:
+			print(e)
+			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		values = list(response.values())
+		random.shuffle(values)
+		res = dict(zip(response, values))
+		return Response(res.values(),status=status.HTTP_200_OK)
