@@ -728,7 +728,8 @@ class SearchingView(APIView):
 				user_basic_obj = UserBasicDetails.objects.get(matrimony_id = mId)
 				user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 		except ObjectDoesNotExist:
-			return Response({},status=status.HTTP_400_BAD_REQUEST)
+			response['message'] = {'message': 'No data found'}
+			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
 		serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
 		response[user_basic_obj.id] = serializer1.data
 		serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
@@ -959,9 +960,35 @@ class DailyRecoView(APIView):
 						except Exception as e:
 							response[dt.id].update({"LikedStatus":False})
 		except  Exception as e:
-			print(e)
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+			response['message'] = {'message': 'No data found'}
+			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
 		values = list(response.values())
 		random.shuffle(values)
 		res = dict(zip(response, values))
 		return Response(res.values(),status=status.HTTP_200_OK)
+
+# class MatcheOfthedayView(APIView):
+# 	def get(self, request):
+# 		main_user_id = request.GET.get('user_id')
+# 		response = {}
+# 		main_user = UserFullDetails.objects.filter(basic_details__user__id=main_user_id).values()
+# 		main_user_pp = Partner_Preferences.objects.get(basic_details__user__id=main_user_id)
+# 		partner_user = Partner_Preferences.objects.all().values()
+# 		for index , keys in enumerate(partner_user):
+# 			if main_user[0]['basic_details_id'] != keys['basic_details_id']:
+# 				response[keys['basic_details_id']] = {}
+# 				age = [{'age': True} if calculate_age(main_user[0]['dateofbirth']) in range(int(keys['min_age']),int(keys['max_age'])) else {'age': False}]
+# 				age.append({'height': True} if height_replaced(main_user[0]['height']) in height_range(min_height_replaced(keys['min_height']),max_height_replaced(keys['max_height'])) else {'height': False})
+# 				del  keys['id'],keys['min_age'],keys['max_age'],keys['min_height'],keys['max_height']
+# 				user_full_details = dict(ChainMap(*[{k : True} if partner_user[0][k] == main_user[0][k] else {k:False} for k,v in keys.items()]))
+# 				details = user_full_details
+# 				age_height = dict(ChainMap(*age))
+# 				response[keys['basic_details_id']].update(details)
+# 				response[keys['basic_details_id']].update(age_height)
+# 				response[keys['basic_details_id']].update({'basic_details_id':keys['basic_details_id']})
+# 		for index , keys in enumerate(response.values()):
+# 			total = len(keys)
+# 			true_total = len([j for i, j in keys.items() if j == True])
+# 			percentage = true_total / total *100
+# 			response[keys['basic_details_id']].update({"matching_percentage":int(percentage)})
+# 		return Response(response.values(),status=status.HTTP_200_OK)
