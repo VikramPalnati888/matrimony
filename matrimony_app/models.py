@@ -370,20 +370,22 @@ class Family_type(models.Model):
 	def __str__(self):
 		return self.family_type
 
-# class requests(models.Model):
+class FriendRequests(models.Model):
 
-# 	request_status_types = (
-# 		("Pending","Pending"),
-# 		("Approved","Approved"),
-# 		("Rejected","Rejected"),
-# 		)
+	request_status_types = (
+		("Pending","Pending"),
+		("Approved","Approved"),
+		("Rejected","Rejected"),
+		)
 
-# 	user = models.ForeignKey(User, on_delete=models.CASCADE)
-# 	requested_user_id = models.CharField(max_length=100,null=True)
-# 	created_at = models.DateField()
-# 	request_status = models.CharField(choices = request_status_types, default="Pending", max_length = 25)
-# 	updated_at = models.DateField()
+	user = models.ForeignKey(User, on_delete=models.CASCADE)
+	requested_user_id = models.CharField(max_length=100,null=True)
+	created_at = models.DateField()
+	created_time = models.TimeField()
+	request_status = models.CharField(choices = request_status_types, default="Pending", max_length = 25)
+	updated_at = models.DateField()
+	updated_time = models.TimeField()
 
-# 	def __str__(self):
-# 		return "%s"%(self.user)
+	def __str__(self):
+		return "%s"%(self.user)
 

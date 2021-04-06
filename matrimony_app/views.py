@@ -967,6 +967,65 @@ class DailyRecoView(APIView):
 		res = dict(zip(response, values))
 		return Response(res.values(),status=status.HTTP_200_OK)
 
+
+class RequestsView(APIView):
+	def get(self, request):
+		user_id = request.GET.get('user_id')
+		response = {}
+		try:
+			req = FriendRequests.objects.filter(requested_user_id=user_id)
+			for data in req:
+				user_basic_obj = UserBasicDetails.objects.get(user__id = data.user.id)
+				serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+				response[data.id] = serializer1.data
+				user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+				serializer2=UserFullDetailsSerialzers(user_full, many=False)
+				response[data.id].update({"age":calculate_age(user_full.dateofbirth)})
+				response[data.id].update(serializer2.data)
+				req_data = FriendRequests.objects.get(user__id = data.user.id,requested_user_id=user_id)
+				serializer3=FriendRequestsSerializer(req_data,many=False)
+				response[data.id].update(serializer3.data)
+		except ObjectDoesNotExist:
+				return Response({"message":"UserDetail ObjectDoesNotExist"})
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+	def post(self, request):
+		if not request.POST._mutable:
+			request.POST._mutable = True
+		data = request.data
+		response = {}
+		user_id = request.GET.get('user_id')
+		data['user'] = user_id
+		data['created_at'] = date.today()
+		data['updated_at'] = date.today()
+		data['request_status'] = "Pending"
+		try:
+			user_pp = FriendRequests.objects.get(user__id=user_id,requested_user_id=data['requested_user_id'])
+			serializer2=FriendRequestsSerializer(user_pp,many=False)
+			response.update(serializer2.data)
+			return Response(response,status=status.HTTP_200_OK)
+		except Exception as e:
+			serializer = FriendRequestsSerializer(data = data)
+			if serializer.is_valid(): 
+				serializer.save()
+				return Response(serializer.data, status=status.HTTP_201_CREATED)
+			return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	
+	def put(self, request):
+		if not request.POST._mutable:
+			request.POST._mutable = True
+		response = {}
+		data = request.data
+		accepted_user_id = request.GET.get('accepted_user_id')
+		data['updated_at'] = date.today()
+		queryset = FriendRequests.objects.get(user__id=data['user_id'],requested_user_id=accepted_user_id)
+		print(queryset)
+		req_serializer = FriendRequestsSerializer(queryset, data=data, partial=True)
+		if req_serializer.is_valid():
+			req_serializer.save()
+			return Response(req_serializer.data,status=status.HTTP_200_OK)
+		return Response(req_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 # class MatcheOfthedayView(APIView):
 # 	def get(self, request):
 # 		main_user_id = request.GET.get('user_id')

@@ -45,6 +45,11 @@ class CitySerializer(serializers.ModelSerializer):
 		model = City
 		fields = '__all__'
 
+class FriendRequestsSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = FriendRequests
+		fields = '__all__'
+
 class ReligionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Religion
