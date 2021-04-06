@@ -998,6 +998,8 @@ class RequestsView(APIView):
 		data['user'] = user_id
 		data['created_at'] = date.today()
 		data['updated_at'] = date.today()
+		data['created_time'] = datetime.now().strftime("%H:%M:%S")
+		data['updated_time'] = datetime.now().strftime("%H:%M:%S")
 		data['request_status'] = "Pending"
 		try:
 			user_pp = FriendRequests.objects.get(user__id=user_id,requested_user_id=data['requested_user_id'])
@@ -1018,6 +1020,7 @@ class RequestsView(APIView):
 		data = request.data
 		accepted_user_id = request.GET.get('accepted_user_id')
 		data['updated_at'] = date.today()
+		data['updated_time'] = datetime.now().strftime("%H:%M:%S")
 		queryset = FriendRequests.objects.get(user__id=data['user_id'],requested_user_id=accepted_user_id)
 		print(queryset)
 		req_serializer = FriendRequestsSerializer(queryset, data=data, partial=True)
