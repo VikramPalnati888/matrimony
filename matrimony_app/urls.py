@@ -27,6 +27,7 @@ urlpatterns = [
 				path('dailyreco/',DailyRecoView.as_view(), name="daily recommended"),
 				# path('matcheoftheday/',MatcheOfthedayView.as_view(), name="Maatch of the day"),
 				path('requests/',RequestsView.as_view(), name="requests"),
+				path('interested_profiles/',InterestedView.as_view(), name="Interested profiles View"),
 
 				path('religion/',ReligionView.as_view(), name="religion"),
 				path('job_sector/',Job_sectorView.as_view(), name="Job sectorView"),

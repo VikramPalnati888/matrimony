@@ -385,6 +385,7 @@ class FriendRequests(models.Model):
 	request_status = models.CharField(choices = request_status_types, default="Pending", max_length = 25)
 	updated_at = models.DateField()
 	updated_time = models.TimeField()
+	status = models.BooleanField(default=True)
 
 	def __str__(self):
 		return "%s"%(self.user)
