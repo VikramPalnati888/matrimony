@@ -1093,6 +1093,54 @@ class InterestedView(APIView):
 			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
+class AcceptedView(APIView):
+	def get(self, request):
+		user_id = request.GET.get('user_id')
+		response = {}
+		try:
+			req = FriendRequests.objects.filter(user__id=user_id,request_status='Approved')
+			print(req)
+			for data in req:
+				user_basic_obj = UserBasicDetails.objects.get(user__id = int(data.requested_user_id))
+				serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+				response[data.id] = serializer1.data
+				user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+				serializer2=UserFullDetailsSerialzers(user_full, many=False)
+				response[data.id].update({"age":calculate_age(user_full.dateofbirth)})
+				response[data.id].update(serializer2.data)
+				req_data = FriendRequests.objects.get(user__id = user_id,requested_user_id= int(data.requested_user_id))
+				serializer3=FriendRequestsSerializer(req_data,many=False)
+				response[data.id].update(serializer3.data)
+		except Exception as e:
+			print(e)
+			response['message'] = {'message': 'No data found'}
+			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+class RejectedView(APIView):
+	def get(self, request):
+		user_id = request.GET.get('user_id')
+		response = {}
+		try:
+			req = FriendRequests.objects.filter(user__id=user_id,request_status='Rejected')
+			print(req)
+			for data in req:
+				user_basic_obj = UserBasicDetails.objects.get(user__id = int(data.requested_user_id))
+				serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+				response[data.id] = serializer1.data
+				user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+				serializer2=UserFullDetailsSerialzers(user_full, many=False)
+				response[data.id].update({"age":calculate_age(user_full.dateofbirth)})
+				response[data.id].update(serializer2.data)
+				req_data = FriendRequests.objects.get(user__id = user_id,requested_user_id= int(data.requested_user_id))
+				serializer3=FriendRequestsSerializer(req_data,many=False)
+				response[data.id].update(serializer3.data)
+		except Exception as e:
+			print(e)
+			response['message'] = {'message': 'No data found'}
+			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
+		return Response(response.values(),status=status.HTTP_200_OK)
+
 # class MatcheOfthedayView(APIView):
 # 	def get(self, request):
 # 		main_user_id = request.GET.get('user_id')

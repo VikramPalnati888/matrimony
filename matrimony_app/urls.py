@@ -28,6 +28,8 @@ urlpatterns = [
 				# path('matcheoftheday/',MatcheOfthedayView.as_view(), name="Maatch of the day"),
 				path('requests/',RequestsView.as_view(), name="requests"),
 				path('interested_profiles/',InterestedView.as_view(), name="Interested profiles View"),
+				path('accepted_profiles/',AcceptedView.as_view(), name="accepted profiles View"),
+				path('rejected_profiles/',RejectedView.as_view(), name="rejected profiles View"),
 
 				path('religion/',ReligionView.as_view(), name="religion"),
 				path('job_sector/',Job_sectorView.as_view(), name="Job sectorView"),
