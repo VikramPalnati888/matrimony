@@ -800,11 +800,14 @@ class UgPgMatchesView(APIView):
 		response = {}
 		user_id = request.GET.get('user_id')
 		under_graduation_name = request.GET.get('ug_name')
+		multi_ug_name = request.GET.get('multi_ug_name')
+		multi_pg_name = request.GET.get('multi_pg_name')
 		post_graduation_name = request.GET.get('pg_name')
 		ug = request.GET.get('ug')
 		pg = request.GET.get('pg')
 		lc = request.GET.get('lc')
 		location_based = request.GET.get('location')
+		multi_location_based = request.GET.get('multi_locations')
 		try:
 			main_user = UserBasicDetails.objects.get(user__id = user_id)
 			main_user_full = UserFullDetails.objects.get(basic_details__id=main_user.id)
@@ -814,12 +817,21 @@ class UgPgMatchesView(APIView):
 				user_full_obj = UserFullDetails.objects.all().order_by('post_graduation')
 			elif under_graduation_name:
 				user_full_obj = UserFullDetails.objects.filter(under_graduation=under_graduation_name)
+			elif multi_ug_name:
+				ug_names =  multi_ug_name.split(',')
+				user_full_obj = UserFullDetails.objects.filter(under_graduation__in=ug_names)
 			elif post_graduation_name:
 				user_full_obj = UserFullDetails.objects.filter(post_graduation=post_graduation_name)
+			elif multi_pg_name:
+				pg_names =  multi_pg_name.split(',')
+				user_full_obj = UserFullDetails.objects.filter(post_graduation__in=pg_names)
 			elif lc == 'location':
 				user_full_obj = UserFullDetails.objects.filter(state=main_user_full.state)
 			elif location_based:	
 				user_full_obj = UserFullDetails.objects.filter(city=location_based)
+			elif multi_location_based:
+				locations =  multi_location_based.split(',')
+				user_full_obj = UserFullDetails.objects.filter(city__in=locations)
 			else:
 				user_full_obj = UserFullDetails.objects.all()
 			for dt in user_full_obj:
@@ -1141,28 +1153,36 @@ class RejectedView(APIView):
 			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
-# class MatcheOfthedayView(APIView):
-# 	def get(self, request):
-# 		main_user_id = request.GET.get('user_id')
-# 		response = {}
-# 		main_user = UserFullDetails.objects.filter(basic_details__user__id=main_user_id).values()
-# 		main_user_pp = Partner_Preferences.objects.get(basic_details__user__id=main_user_id)
-# 		partner_user = Partner_Preferences.objects.all().values()
-# 		for index , keys in enumerate(partner_user):
-# 			if main_user[0]['basic_details_id'] != keys['basic_details_id']:
-# 				response[keys['basic_details_id']] = {}
-# 				age = [{'age': True} if calculate_age(main_user[0]['dateofbirth']) in range(int(keys['min_age']),int(keys['max_age'])) else {'age': False}]
-# 				age.append({'height': True} if height_replaced(main_user[0]['height']) in height_range(min_height_replaced(keys['min_height']),max_height_replaced(keys['max_height'])) else {'height': False})
-# 				del  keys['id'],keys['min_age'],keys['max_age'],keys['min_height'],keys['max_height']
-# 				user_full_details = dict(ChainMap(*[{k : True} if partner_user[0][k] == main_user[0][k] else {k:False} for k,v in keys.items()]))
-# 				details = user_full_details
-# 				age_height = dict(ChainMap(*age))
-# 				response[keys['basic_details_id']].update(details)
-# 				response[keys['basic_details_id']].update(age_height)
-# 				response[keys['basic_details_id']].update({'basic_details_id':keys['basic_details_id']})
-# 		for index , keys in enumerate(response.values()):
-# 			total = len(keys)
-# 			true_total = len([j for i, j in keys.items() if j == True])
-# 			percentage = true_total / total *100
-# 			response[keys['basic_details_id']].update({"matching_percentage":int(percentage)})
-# 		return Response(response.values(),status=status.HTTP_200_OK)
+class ViewdByOthersMatches(APIView):
+	def get(self, request):
+		response = {}
+		user_id = request.GET.get('user_id')
+		try:
+			viewed_obj = Viewed_matches.objects.filter(viewed_user_id=user_id)
+			for viewed_data in viewed_obj:
+				user_basic_obj = UserBasicDetails.objects.get(user = int(viewed_data.user.id))
+				serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
+				response[user_basic_obj.user.id] = serializer1.data
+				
+				user_full_obj = UserFullDetails.objects.get(basic_details=user_basic_obj)
+				serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+				response[user_full_obj.basic_details.user.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
+				response[user_full_obj.basic_details.user.id].update(serializer2.data)
+				
+				viewed_details_obj = Viewed_matches.objects.get(user__id = int(viewed_data.user.id))
+				serializer3=ViewdDetailsSerialzers(viewed_details_obj,many=False)
+				response[int(viewed_data.user.id)].update({'viewd_status':viewed_data.viewd_status})
+				try:
+					liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked = viewed_data.user.id)
+					response[int(liked_obj.user_liked)].update({"LikedStatus":liked_obj.LikedStatus})
+				except Exception as e:
+					print(e)
+					response[int(viewed_data.user.id)].update({"LikedStatus":False})
+				try:
+					req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=viewed_data.user.id)
+					response[int(req_status.requested_user_id)].update({"Req_status":req_status.status})
+				except Exception as e:
+					response[int(viewed_data.user.id)].update({"Req_status":False})	
+		except  Exception as e:
+			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		return Response(response.values(),status=status.HTTP_200_OK)
