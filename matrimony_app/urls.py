@@ -31,6 +31,7 @@ urlpatterns = [
 				path('accepted_profiles/',AcceptedView.as_view(), name="accepted profiles View"),
 				path('rejected_profiles/',RejectedView.as_view(), name="rejected profiles View"),
 				path('viewdbyothers/',ViewdByOthersMatches.as_view(), name="viewd by others"),
+				path('multiple_images/',MultipleImagesView.as_view(), name="multiple images"),
 
 				path('religion/',ReligionView.as_view(), name="religion"),
 				path('job_sector/',Job_sectorView.as_view(), name="Job sectorView"),

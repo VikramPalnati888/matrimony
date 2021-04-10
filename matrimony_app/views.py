@@ -23,6 +23,7 @@ import ast
 from django.forms.models import model_to_dict
 from collections import ChainMap
 import random
+from django.conf import settings
 
 def generate_otp():
 	"""Generating 4 digits OTP automatically"""
@@ -223,7 +224,11 @@ class UserFullDetailsView(APIView):
 			userFull_details = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 			data['image'] = request.FILES['image']
 			data['basic_details'] = int(user_basic_obj.id)
-			serializer = UserFullDetailsSerialzers(userFull_details,data = data, partial=True)
+			if data['image'] == '':
+				del data['image']
+				serializer = UserFullDetailsSerialzers(userFull_details,data = data, partial=True)
+			else:
+				serializer = UserFullDetailsSerialzers(userFull_details,data = data, partial=True)
 			if serializer.is_valid():
 				serializer.save()
 				return Response(serializer.data, status=status.HTTP_200_OK)
@@ -306,7 +311,12 @@ class CountryList(APIView):
 
 class StatesList(APIView):
 	def get(self,request):
-		queryset = State.objects.filter(country__id=request.GET.get('country_id'))
+		country_id = request.GET.get('country_id')
+		country_name = request.GET.get('country_name')
+		if country_id:
+			queryset = State.objects.filter(country__id=country_id)
+		else:
+			queryset = State.objects.filter(country__country=country_id)
 		response=StateSerializer(queryset,many=True)
 		return Response(response.data, status=status.HTTP_200_OK)
 
@@ -1169,7 +1179,7 @@ class ViewdByOthersMatches(APIView):
 				response[user_full_obj.basic_details.user.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
 				response[user_full_obj.basic_details.user.id].update(serializer2.data)
 				
-				viewed_details_obj = Viewed_matches.objects.get(user__id = int(viewed_data.user.id))
+				viewed_details_obj = Viewed_matches.objects.get(user__id = int(viewed_data.user.id),viewed_user_id=user_id)
 				serializer3=ViewdDetailsSerialzers(viewed_details_obj,many=False)
 				response[int(viewed_data.user.id)].update({'viewd_status':viewed_data.viewd_status})
 				try:
@@ -1184,5 +1194,51 @@ class ViewdByOthersMatches(APIView):
 				except Exception as e:
 					response[int(viewed_data.user.id)].update({"Req_status":False})	
 		except  Exception as e:
+			print(e)
 			return Response({"message":"UserDetail ObjectDoesNotExist"})
 		return Response(response.values(),status=status.HTTP_200_OK)
+
+class MultipleImagesView(APIView):
+	def post(self, request):
+		user_id = request.GET.get('user_id')
+		list_of_images = request.FILES.getlist('multi_images')
+		print(list_of_images)
+		try:
+			user_full_obj = UserFullDetails.objects.get(basic_details__user__id=user_id)
+			for file in list_of_images:
+				miltiple_images = UserMultiFile.objects.create(basic_details=user_full_obj, files=file)
+		except  Exception as e:
+			print(e)
+			return Response([{"message":"UserDetail ObjectDoesNotExist"}])
+		return Response([{"message":"Images Stored Successful"}],status=status.HTTP_200_OK)
+
+
+	def get(self, request):
+		response = {}
+		user_id = request.GET.get('user_id')
+		list_of_images = request.FILES.getlist('multi_images')
+		try:
+			user_full_obj = UserFullDetails.objects.get(basic_details__user__id=user_id)
+			multiple_images = UserMultiFile.objects.filter(basic_details=user_full_obj)
+			for file in multiple_images:
+				response[file.id] = {
+										"id":file.id,
+										"multi_images":file.files.url 
+									}
+		except  Exception as e:
+			print(e)
+			return Response([{"message":"No Data Found"}])
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+	def delete(self, request):
+		response = {}
+		user_id = request.GET.get('user_id')
+		image_id = request.GET.get('multi_images_id')
+		try:
+			user_full_obj = UserFullDetails.objects.get(basic_details__user__id=user_id)
+			multiple_images = UserMultiFile.objects.get(basic_details=user_full_obj,id=image_id)
+			multiple_images.delete()
+		except  Exception as e:
+			print(e)
+			return Response([{"message":e}])
+		return Response([{"message":"delete Successful"}],status=status.HTTP_200_OK)

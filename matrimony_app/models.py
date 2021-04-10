@@ -70,6 +70,14 @@ class UserFullDetails(models.Model):
 	def __str__(self):
 		return "%s" %(self.basic_details.user.id)
 
+class UserMultiFile(models.Model):
+
+	basic_details = models.ForeignKey(UserFullDetails, on_delete=models.CASCADE)
+	files = models.FileField(upload_to = 'profile_pic/',null=True)
+
+	def __str__(self):
+		return "%s"%(self.id)
+
 class SaveOTP(models.Model):
 
 	phone_number = models.ForeignKey(UserBasicDetails, on_delete=models.CASCADE)
