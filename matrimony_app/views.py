@@ -316,7 +316,7 @@ class StatesList(APIView):
 		if country_id:
 			queryset = State.objects.filter(country__id=country_id)
 		else:
-			queryset = State.objects.filter(country__country=country_id)
+			queryset = State.objects.filter(country__country=country_name)
 		response=StateSerializer(queryset,many=True)
 		return Response(response.data, status=status.HTTP_200_OK)
 
@@ -1045,6 +1045,16 @@ class RequestsView(APIView):
 				# response[data.id].update({"past_time":timeDiff(user_full.dateofbirth)})
 				serializer3=FriendRequestsSerializer(req_data,many=False)
 				response[data.id].update(serializer3.data)
+				try:
+					liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =data.id)
+					response[data.id].update({"LikedStatus":liked_obj.LikedStatus})
+				except Exception as e:
+					response[data.id].update({"LikedStatus":False})
+				try:
+					req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=data.id)
+					response[data.id].update({"Req_status":req_status.status})
+				except Exception as e:
+					response[data.id].update({"Req_status":False})
 		except ObjectDoesNotExist:
 			response['message'] = {'message': 'No data found'}
 			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
@@ -1109,6 +1119,11 @@ class InterestedView(APIView):
 				req_data = FriendRequests.objects.get(user__id = user_id,requested_user_id= int(data.requested_user_id))
 				serializer3=FriendRequestsSerializer(req_data,many=False)
 				response[data.id].update(serializer3.data)
+				try:
+					liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =data.requested_user_id)
+					response[data.id].update({"LikedStatus":liked_obj.LikedStatus})
+				except Exception as e:
+					response[data.id].update({"LikedStatus":False})
 		except Exception as e:
 			print(e)
 			response['message'] = {'message': 'No data found'}
@@ -1133,6 +1148,16 @@ class AcceptedView(APIView):
 				req_data = FriendRequests.objects.get(user__id = user_id,requested_user_id= int(data.requested_user_id))
 				serializer3=FriendRequestsSerializer(req_data,many=False)
 				response[data.id].update(serializer3.data)
+				try:
+					liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =data.requested_user_id)
+					response[data.id].update({"LikedStatus":liked_obj.LikedStatus})
+				except Exception as e:
+					response[data.id].update({"LikedStatus":False})
+				try:
+					req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=data.requested_user_id)
+					response[data.id].update({"Req_status":req_status.status})
+				except Exception as e:
+					response[data.id].update({"Req_status":False})
 		except Exception as e:
 			print(e)
 			response['message'] = {'message': 'No data found'}
@@ -1157,6 +1182,12 @@ class RejectedView(APIView):
 				req_data = FriendRequests.objects.get(user__id = user_id,requested_user_id= int(data.requested_user_id))
 				serializer3=FriendRequestsSerializer(req_data,many=False)
 				response[data.id].update(serializer3.data)
+				try:
+					liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =data.requested_user_id)
+					response[data.id].update({"LikedStatus":liked_obj.LikedStatus})
+				except Exception as e:
+					response[data.id].update({"LikedStatus":False})
+
 		except Exception as e:
 			print(e)
 			response['message'] = {'message': 'No data found'}
