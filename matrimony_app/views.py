@@ -189,8 +189,8 @@ class UserFullDetailsView(APIView):
 			else:	
 				user_basic_obj = UserBasicDetails.objects.get(user__id = main_user_id)
 				user_qs = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
-		except ObjectDoesNotExist:
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		except Exception as e:
+			return Response({"message":str(e)})
 
 		serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
 		response[main_user_id] = serializer1.data
@@ -587,8 +587,8 @@ class NewMatches(APIView):
 	def get(self, request):
 		response = {}
 		user_id = request.GET.get('user_id')
+		user_qs	= User.objects.all().order_by('-id')
 		try:
-			user_qs	= User.objects.all().order_by('-id')
 			main_obj = UserFullDetails.objects.get(basic_details__user__id=user_id)
 			for dt in user_qs:
 				if not dt.is_superuser:
@@ -612,7 +612,11 @@ class NewMatches(APIView):
 							response[dt.id].update({"Req_status":False})	
 		except  Exception as e:
 			print(e)
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+			if str(e) == "UserFullDetails matching query does not exist.":
+				dl_user = User.objects.get(id=dt.id)
+				dl_user.delete()
+				print("delete Successful")
+			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 
@@ -651,7 +655,7 @@ class LikeView(APIView):
 				response[int(liked_data.user_liked)].update({"LikedStatus":liked_details_obj.LikedStatus})
 		except  Exception as e:
 			print(e)
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)	
 
 class ViewdMatches(APIView):
@@ -686,20 +690,20 @@ class ViewdMatches(APIView):
 				
 				viewed_details_obj = Viewed_matches.objects.get(viewed_user_id = int(viewed_data.viewed_user_id))
 				serializer3=ViewdDetailsSerialzers(viewed_details_obj,many=False)
-				response[int(viewed_data.viewed_user_id)].update({'viewd_status':viewed_data.viewd_status})
+				response[user_full_obj.basic_details.user.id].update({'viewd_status':viewed_data.viewd_status})
 				try:
 					liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked = viewed_data.viewed_user_id)
-					response[int(liked_obj.user_liked)].update({"LikedStatus":liked_obj.LikedStatus})
+					response[user_full_obj.basic_details.user.id].update({"LikedStatus":liked_obj.LikedStatus})
 				except Exception as e:
 					print(e)
-					response[int(viewed_data.viewed_user_id)].update({"LikedStatus":False})
+					response[user_full_obj.basic_details.user.id].update({"LikedStatus":False})
 				try:
 					req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=viewed_data.viewed_user_id)
-					response[int(req_status.requested_user_id)].update({"Req_status":req_status.status})
+					response[user_full_obj.basic_details.user.id].update({"Req_status":req_status.status})
 				except Exception as e:
-					response[int(viewed_data.viewed_user_id)].update({"Req_status":False})	
+					response[user_full_obj.basic_details.user.id].update({"Req_status":False})	
 		except  Exception as e:
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 
@@ -710,8 +714,8 @@ class PPView(APIView):
 		try:
 				user_basic_obj = UserBasicDetails.objects.get(user__id = user_id)
 				user_pp = Partner_Preferences.objects.get(basic_details__id=user_basic_obj.id)
-		except ObjectDoesNotExist:
-				return Response({"message":"UserDetail ObjectDoesNotExist"})
+		except Exception as e:
+				return Response({"message":str(e)})
 		serializer2=Partner_PreferencesSerialzers(user_pp,many=False)
 		response.update(serializer2.data)
 		return Response(response,status=status.HTTP_200_OK)
@@ -775,6 +779,7 @@ class SearchingPPView(APIView):
 		main_user_id = request.GET.get('user_id')
 		data = request.data
 		try:
+			print(data['under_graduation'])
 			main_user = UserBasicDetails.objects.get(user__id = main_user_id)
 			main_user_full = UserFullDetails.objects.get(basic_details__id=main_user.id)
 			user_full_obj = UserFullDetails.objects.filter(	physical_status = data['physical_status'],
@@ -801,8 +806,8 @@ class SearchingPPView(APIView):
 							serializer2=UserFullDetailsSerialzers(user_full,many=False)
 							response[dt.id].update({"age":calculate_age(dt.dateofbirth)})
 							response[dt.id].update(serializer2.data)
-		except ObjectDoesNotExist:
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		except Exception as e:
+			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 class UgPgMatchesView(APIView):
@@ -863,8 +868,8 @@ class UgPgMatchesView(APIView):
 						response[int(dt.id)].update({"Req_status":req_status.status})
 					except Exception as e:
 						response[int(dt.id)].update({"Req_status":False})					
-		except ObjectDoesNotExist:
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		except Exception as e:
+			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 
@@ -987,8 +992,8 @@ class MatchesByCatView(APIView):
 						response[int(dt.id)].update({"Req_status":req_status.status})
 					except Exception as e:
 						response[int(dt.id)].update({"Req_status":False})		
-		except ObjectDoesNotExist:
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+		except Exception as e:
+			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 class DailyRecoView(APIView):
@@ -1019,7 +1024,11 @@ class DailyRecoView(APIView):
 						except Exception as e:
 							response[dt.id].update({"Req_status":False})
 		except  Exception as e:
-			response['message'] = {'message': 'No data found'}
+			if str(e) == "UserFullDetails matching query does not exist.":
+				dl_user = User.objects.get(id=dt.id)
+				dl_user.delete()
+				print("delete Successful")
+			response['message'] = {'message': str(e)}
 			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
 		values = list(response.values())
 		random.shuffle(values)
@@ -1055,8 +1064,8 @@ class RequestsView(APIView):
 					response[data.id].update({"Req_status":req_status.status})
 				except Exception as e:
 					response[data.id].update({"Req_status":False})
-		except ObjectDoesNotExist:
-			response['message'] = {'message': 'No data found'}
+		except Exception as e:
+			response['message'] = {'message': str(e)}
 			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
@@ -1124,9 +1133,14 @@ class InterestedView(APIView):
 					response[data.id].update({"LikedStatus":liked_obj.LikedStatus})
 				except Exception as e:
 					response[data.id].update({"LikedStatus":False})
+				try:
+					req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=data.requested_user_id)
+					response[data.id].update({"Req_status":req_status.status})
+				except Exception as e:
+					response[data.id].update({"Req_status":False})
 		except Exception as e:
 			print(e)
-			response['message'] = {'message': 'No data found'}
+			response['message'] = {'message': str(e)}
 			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
@@ -1160,7 +1174,7 @@ class AcceptedView(APIView):
 					response[data.id].update({"Req_status":False})
 		except Exception as e:
 			print(e)
-			response['message'] = {'message': 'No data found'}
+			response['message'] = {'message':str(e)}
 			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
@@ -1190,7 +1204,7 @@ class RejectedView(APIView):
 
 		except Exception as e:
 			print(e)
-			response['message'] = {'message': 'No data found'}
+			response['message'] = {'message': str(e)}
 			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
 		return Response(response.values(),status=status.HTTP_200_OK)
 
@@ -1226,7 +1240,7 @@ class ViewdByOthersMatches(APIView):
 					response[int(viewed_data.user.id)].update({"Req_status":False})	
 		except  Exception as e:
 			print(e)
-			return Response({"message":"UserDetail ObjectDoesNotExist"})
+			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 class MultipleImagesView(APIView):
@@ -1240,7 +1254,7 @@ class MultipleImagesView(APIView):
 				miltiple_images = UserMultiFile.objects.create(basic_details=user_full_obj, files=file)
 		except  Exception as e:
 			print(e)
-			return Response([{"message":"UserDetail ObjectDoesNotExist"}])
+			return Response([{"message":str(e)}])
 		return Response([{"message":"Images Stored Successful"}],status=status.HTTP_200_OK)
 
 
@@ -1258,7 +1272,7 @@ class MultipleImagesView(APIView):
 									}
 		except  Exception as e:
 			print(e)
-			return Response([{"message":"No Data Found"}])
+			return Response([{"message":str(e)}])
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 	def delete(self, request):
@@ -1271,5 +1285,96 @@ class MultipleImagesView(APIView):
 			multiple_images.delete()
 		except  Exception as e:
 			print(e)
-			return Response([{"message":e}])
+			return Response([{"message":str(e)}])
 		return Response([{"message":"delete Successful"}],status=status.HTTP_200_OK)
+
+class MatchOfTheDayView(APIView):
+	def post(self, request):
+		Match_user_id = request.GET.get('Match_user_id')
+		Today_date = date.today()
+		try:
+			ls_obj = MatchOfTheDay.objects.get(user_id=Match_user_id)
+			return Response({"message":"Data Already existed",
+							"status": False})
+		except Exception as e:
+			MatchOfTheDay.objects.create(user_id=Match_user_id,created_at=Today_date,Ative_status=True)
+			return Response({"message":"Match of the data saved",
+							"status":True})
+		return Response([{"message":"Images Stored Successful"}],status=status.HTTP_200_OK)
+
+
+	def get(self, request):
+		response = {}
+		user = request.GET.get('user_id')
+		try:
+			user_qs	= MatchOfTheDay.objects.filter(created_at=date.today(),Ative_status=True)
+			main_obj = UserFullDetails.objects.get(basic_details__user__id=user)
+			for dt in user_qs:
+				user_basic_obj = UserBasicDetails.objects.get(user__id = int(dt.user_id))
+				user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+				if main_obj.gender != user_full_obj.gender:
+					serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
+					response[int(dt.user_id)] = serializer1.data
+					serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+					response[int(dt.user_id)].update({"age":calculate_age(user_full_obj.dateofbirth)})
+					response[int(dt.user_id)].update(serializer2.data)
+					try:
+						liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =int(dt.user_id))
+						response[int(dt.user_id)].update({"LikedStatus":liked_obj.LikedStatus})
+					except Exception as e:
+						response[int(dt.user_id)].update({"LikedStatus":False})
+					try:
+						req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=int(dt.user_id))
+						response[int(dt.user_id)].update({"Req_status":req_status.status})
+					except Exception as e:
+						response[int(dt.user_id)].update({"Req_status":False})	
+		except  Exception as e:
+			print(e)
+			return Response({"message":str(e)})
+		return Response(response.values(),status=status.HTTP_200_OK)
+
+# class NullDataRequestView(APIView):
+# 	def post(self, request):
+# 		Match_user_id = request.GET.get('Match_user_id')
+# 		Today_date = date.today()
+# 		try:
+# 			ls_obj = MatchOfTheDay.objects.get(user=instance)
+# 			return Response({"message":"Data Already existed",
+# 							"status": False})
+# 		except Exception as e:
+# 			MatchOfTheDay.objects.create(user_id=Match_user_id,created_at=Today_date,Ative_status=True)
+# 			return Response({"message":"Match of the data saved",
+# 							"status":True})
+# 		return Response([{"message":"Images Stored Successful"}],status=status.HTTP_200_OK)
+
+
+# 	def get(self, request):
+# 		response = {}
+# 		user_id = request.GET.get('user_id')
+# 		try:
+# 			user_qs	= MatchOfTheDay.objects.filter(created_at=date.today(),Ative_status=True)
+# 			main_obj = UserFullDetails.objects.get(basic_details__user__id=user_id)
+# 			for dt in user_qs:
+# 				if not dt.is_superuser:
+# 					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.user_id)
+# 					user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.user_id)
+# 					if main_obj.gender != user_full_obj.gender:
+# 						serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
+# 						response[dt.user_id] = serializer1.data
+# 						serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
+# 						response[dt.user_id].update({"age":calculate_age(user_full_obj.dateofbirth)})
+# 						response[dt.user_id].update(serializer2.data)
+# 						try:
+# 							liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =int(dt.user_id))
+# 							response[dt.user_id].update({"LikedStatus":liked_obj.LikedStatus})
+# 						except Exception as e:
+# 							response[dt.user_id].update({"LikedStatus":False})
+# 						try:
+# 							req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=int(dt.user_id))
+# 							response[dt.user_id].update({"Req_status":req_status.status})
+# 						except Exception as e:
+# 							response[dt.user_id].update({"Req_status":False})	
+# 		except  Exception as e:
+# 			print(e)
+# 			return Response({"message":str(e)})
+# 		return Response(response.values(),status=status.HTTP_200_OK)

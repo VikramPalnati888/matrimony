@@ -32,4 +32,4 @@ admin.site.register(State)
 admin.site.register(City)
 admin.site.register(LikedStatus)
 admin.site.register(FriendRequests)
-
+admin.site.register(MatchOfTheDay)

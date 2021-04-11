@@ -137,6 +137,8 @@ class Partner_Preferences(models.Model):
 	country = models.CharField(max_length=100,null=True)
 	citizenship = models.CharField(max_length=100,null=True)
 
+	Few_Words_MySelf =  models.TextField()
+	
 	def __str__(self):
 		return "%s" %(self.basic_details.user.id)
 
@@ -398,3 +400,20 @@ class FriendRequests(models.Model):
 	def __str__(self):
 		return "%s"%(self.user)
 
+class MatchOfTheDay(models.Model):
+
+	user_id = models.CharField(max_length=100,null=True)
+	created_at = models.DateField()
+	Ative_status = models.BooleanField(default=True)
+
+	def __str__(self):
+		return "%s"%(self.user_id)
+
+# class NullDataRequest(models.Model):
+
+# 	user_id = models.CharField(max_length=100,null=True)
+# 	requested_user_id = models.CharField(max_length=100,null=True)
+# 	created_at = models.DateField()
+
+# 	def __str__(self):
+# 		return "%s"%(self.user_id)
