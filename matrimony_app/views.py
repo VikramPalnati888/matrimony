@@ -218,13 +218,12 @@ class UserFullDetailsView(APIView):
 			request.POST._mutable = True
 		user_id = request.GET.get('user_id')
 		data = ast.literal_eval(request.data['registerdata'])
-		user_basic_obj = UserBasicDetails.objects.get(user__id = user_id)
-		
 		try:
-			userFull_details = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
-			data['image'] = request.FILES['image']
+			user_basic_obj = UserBasicDetails.objects.get(user__id = user_id)
+			userFull_details = UserFullDetails.objects.get(basic_details=user_basic_obj)
+			data['image'] = request.FILES.get('image')
 			data['basic_details'] = int(user_basic_obj.id)
-			if data['image'] == '':
+			if data['image'] == None:
 				del data['image']
 				serializer = UserFullDetailsSerialzers(userFull_details,data = data, partial=True)
 			else:
@@ -241,16 +240,17 @@ class UserFullDetailsView(APIView):
 				serializer.save()
 				return Response(serializer.data, status=status.HTTP_201_CREATED)
 			return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	
 	def put(self, request):
 		if not request.POST._mutable:
 			request.POST._mutable = True
 		response = {}
 		data = ast.literal_eval(request.data['registerdata'])
-		data['image'] = request.FILES['image']
+		data['image'] = request.FILES.get('image')
 		user_id = request.GET.get('user_id')
 		user_obj = UserBasicDetails.objects.get(user__id = user_id)
 		try:
-			if data['image'] == '':
+			if data['image'] == None:
 				del data['image']
 				queryset = UserFullDetails.objects.get(basic_details__user__id=user_id)
 				serializer = UserFullDetailsSerialzers(queryset, data=data, partial=True)
@@ -609,7 +609,31 @@ class NewMatches(APIView):
 							req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=int(dt.id))
 							response[dt.id].update({"Req_status":req_status.status})
 						except Exception as e:
-							response[dt.id].update({"Req_status":False})	
+							response[dt.id].update({"Req_status":False})
+						try:
+							ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=dt.id,key_name='weight')
+							response[dt.id].update({"weight":ls_obj.key_data,
+																"weight_status":True})
+						except Exception as e:
+							response[dt.id].update({"weight_status":False})
+						try:
+							ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=dt.id,key_name='diet_preference')
+							response[dt.id].update({"diet_preference":ls_obj.key_data,
+																"diet_preference_status":True})
+						except Exception as e:
+							response[dt.id].update({"diet_preference_status":False})
+						try:
+							ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=dt.id,key_name='drinking_habbit')
+							response[dt.id].update({"drinking_habbit":ls_obj.key_data,
+																"drinking_habbit_status":True})
+						except Exception as e:
+							response[dt.id].update({"drinking_habbit_status":False})
+						try:
+							ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=dt.id,key_name='smoking_habbit')
+							response[dt.id].update({"smoking_habbit":ls_obj.key_data,
+																"smoking_habbit_status":True})
+						except Exception as e:
+							response[int(viewed_data.user.id)].update({"smoking_habbit_status":False})
 		except  Exception as e:
 			print(e)
 			if str(e) == "UserFullDetails matching query does not exist.":
@@ -1125,9 +1149,6 @@ class InterestedView(APIView):
 				serializer2=UserFullDetailsSerialzers(user_full, many=False)
 				response[data.id].update({"age":calculate_age(user_full.dateofbirth)})
 				response[data.id].update(serializer2.data)
-				req_data = FriendRequests.objects.get(user__id = user_id,requested_user_id= int(data.requested_user_id))
-				serializer3=FriendRequestsSerializer(req_data,many=False)
-				response[data.id].update(serializer3.data)
 				try:
 					liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =data.requested_user_id)
 					response[data.id].update({"LikedStatus":liked_obj.LikedStatus})
@@ -1237,7 +1258,32 @@ class ViewdByOthersMatches(APIView):
 					req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=viewed_data.user.id)
 					response[int(req_status.requested_user_id)].update({"Req_status":req_status.status})
 				except Exception as e:
-					response[int(viewed_data.user.id)].update({"Req_status":False})	
+					response[int(viewed_data.user.id)].update({"Req_status":False})
+				try:
+					ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=viewed_data.user.id,key_name='weight')
+					response[int(viewed_data.user.id)].update({"weight":ls_obj.key_data,
+														"weight_status":True})
+				except Exception as e:
+					response[int(viewed_data.user.id)].update({"weight_status":False})
+				try:
+					ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=viewed_data.user.id,key_name='diet_preference')
+					response[int(viewed_data.user.id)].update({"diet_preference":ls_obj.key_data,
+														"diet_preference_status":True})
+				except Exception as e:
+					response[int(viewed_data.user.id)].update({"diet_preference_status":False})
+				try:
+					ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=viewed_data.user.id,key_name='drinking_habbit')
+					response[int(viewed_data.user.id)].update({"drinking_habbit":ls_obj.key_data,
+														"drinking_habbit_status":True})
+				except Exception as e:
+					response[int(viewed_data.user.id)].update({"drinking_habbit_status":False})
+				try:
+					ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=viewed_data.user.id,key_name='smoking_habbit')
+					response[int(viewed_data.user.id)].update({"smoking_habbit":ls_obj.key_data,
+														"smoking_habbit_status":True})
+				except Exception as e:
+					response[int(viewed_data.user.id)].update({"smoking_habbit_status":False})
+
 		except  Exception as e:
 			print(e)
 			return Response({"message":str(e)})
@@ -1319,62 +1365,87 @@ class MatchOfTheDayView(APIView):
 					response[int(dt.user_id)].update({"age":calculate_age(user_full_obj.dateofbirth)})
 					response[int(dt.user_id)].update(serializer2.data)
 					try:
-						liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =int(dt.user_id))
+						liked_obj = LikedStatus.objects.get(user__id=user,user_liked =int(dt.user_id))
 						response[int(dt.user_id)].update({"LikedStatus":liked_obj.LikedStatus})
 					except Exception as e:
 						response[int(dt.user_id)].update({"LikedStatus":False})
 					try:
-						req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=int(dt.user_id))
+						req_status = FriendRequests.objects.get(user__id=user,requested_user_id=int(dt.user_id))
 						response[int(dt.user_id)].update({"Req_status":req_status.status})
 					except Exception as e:
-						response[int(dt.user_id)].update({"Req_status":False})	
+						response[int(dt.user_id)].update({"Req_status":False})
+
+					try:
+						ls_obj = NullDataRequest.objects.get(main_user_id=user,null_requested_user_id=dt.user_id,key_name='weight')
+						response[int(dt.user_id)].update({"weight":ls_obj.key_data,
+															"weight_status":True})
+					except Exception as e:
+						response[int(dt.user_id)].update({"weight_status":False})
+					try:
+						ls_obj = NullDataRequest.objects.get(main_user_id=user,null_requested_user_id=dt.user_id,key_name='diet_preference')
+						response[int(dt.user_id)].update({"diet_preference":ls_obj.key_data,
+															"diet_preference_status":True})
+					except Exception as e:
+						response[int(dt.user_id)].update({"diet_preference_status":False})
+					try:
+						ls_obj = NullDataRequest.objects.get(main_user_id=user,null_requested_user_id=dt.user_id,key_name='drinking_habbit')
+						response[int(dt.user_id)].update({"drinking_habbit":ls_obj.key_data,
+															"drinking_habbit_status":True})
+					except Exception as e:
+						response[int(dt.user_id)].update({"drinking_habbit_status":False})
+					try:
+						ls_obj = NullDataRequest.objects.get(main_user_id=user,null_requested_user_id=dt.user_id,key_name='smoking_habbit')
+						response[int(dt.user_id)].update({"smoking_habbit":ls_obj.key_data,
+															"smoking_habbit_status":True})
+					except Exception as e:
+						response[int(dt.user_id)].update({"smoking_habbit_status":False})
+
 		except  Exception as e:
 			print(e)
 			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
-# class NullDataRequestView(APIView):
-# 	def post(self, request):
-# 		Match_user_id = request.GET.get('Match_user_id')
-# 		Today_date = date.today()
-# 		try:
-# 			ls_obj = MatchOfTheDay.objects.get(user=instance)
-# 			return Response({"message":"Data Already existed",
-# 							"status": False})
-# 		except Exception as e:
-# 			MatchOfTheDay.objects.create(user_id=Match_user_id,created_at=Today_date,Ative_status=True)
-# 			return Response({"message":"Match of the data saved",
-# 							"status":True})
-# 		return Response([{"message":"Images Stored Successful"}],status=status.HTTP_200_OK)
+class NullDataRequestView(APIView):
+	def post(self, request):
+		user_id = request.GET.get('user_id')
+		null_requested_user_id = request.data.get('null_requested_user_id')
+		key_name = request.data.get('key_name')
+		key_data = request.data.get('key_data')
+		try:
+			ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=null_requested_user_id,key_name=key_name)
+			if ls_obj.key_data:
+				return Response({
+								"id":ls_obj.id,
+								"user_id":ls_obj.main_user_id,
+								"null_requested_user_id":ls_obj.null_requested_user_id,
+								"key_name":ls_obj.key_name,
+								"key_data":ls_obj.key_data,
+								"null_requested_status":True})
+			else:
+				return Response({
+								"id":ls_obj.id,
+								"user_id":ls_obj.main_user_id,
+								"null_requested_user_id":ls_obj.null_requested_user_id,
+								"key_name":ls_obj.key_name,
+								"key_data":ls_obj.key_data,
+								"null_requested_status":False,
+								"message":"requested sent successful"})
+		except Exception as e:
+			NullDataRequest.objects.create(main_user_id=user_id,null_requested_user_id=null_requested_user_id,key_name=key_name)
+			return Response({"message":"Null request data saved Successful",
+							"null_requested_status":True})
+		return Response([{"message":"Images Stored Successful"}],status=status.HTTP_200_OK)
 
-
-# 	def get(self, request):
-# 		response = {}
-# 		user_id = request.GET.get('user_id')
-# 		try:
-# 			user_qs	= MatchOfTheDay.objects.filter(created_at=date.today(),Ative_status=True)
-# 			main_obj = UserFullDetails.objects.get(basic_details__user__id=user_id)
-# 			for dt in user_qs:
-# 				if not dt.is_superuser:
-# 					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.user_id)
-# 					user_full_obj = UserFullDetails.objects.get(basic_details__id=user_basic_obj.user_id)
-# 					if main_obj.gender != user_full_obj.gender:
-# 						serializer1=UserBasicDetailsSerialzers(user_basic_obj,many=False)
-# 						response[dt.user_id] = serializer1.data
-# 						serializer2=UserFullDetailsSerialzers(user_full_obj,many=False)
-# 						response[dt.user_id].update({"age":calculate_age(user_full_obj.dateofbirth)})
-# 						response[dt.user_id].update(serializer2.data)
-# 						try:
-# 							liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =int(dt.user_id))
-# 							response[dt.user_id].update({"LikedStatus":liked_obj.LikedStatus})
-# 						except Exception as e:
-# 							response[dt.user_id].update({"LikedStatus":False})
-# 						try:
-# 							req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=int(dt.user_id))
-# 							response[dt.user_id].update({"Req_status":req_status.status})
-# 						except Exception as e:
-# 							response[dt.user_id].update({"Req_status":False})	
-# 		except  Exception as e:
-# 			print(e)
-# 			return Response({"message":str(e)})
-# 		return Response(response.values(),status=status.HTTP_200_OK)
+	def put(self, request):
+		if not request.POST._mutable:
+			request.POST._mutable = True
+		requested_user_id = request.GET.get('null_requested_user_id')
+		data = request.data
+		print(data['user_id'])
+		queryset = NullDataRequest.objects.get(main_user_id=data['user_id'],null_requested_user_id=requested_user_id,key_name=data['key_name'])
+		print(queryset)
+		req_serializer = NullDataRequestSerialzers(queryset, data=data, partial=True)
+		if req_serializer.is_valid():
+			req_serializer.save()
+			return Response(req_serializer.data,status=status.HTTP_200_OK)
+		return Response(req_serializer.errors, status=status.HTTP_400_BAD_REQUEST)

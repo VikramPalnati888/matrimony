@@ -31,7 +31,7 @@ urlpatterns = [
 				path('accepted_profiles/',AcceptedView.as_view(), name="accepted profiles View"),
 				path('rejected_profiles/',RejectedView.as_view(), name="rejected profiles View"),
 				path('viewdbyothers/',ViewdByOthersMatches.as_view(), name="viewd by others"),
-				# path('null_data_req/',NullDataRequestView.as_view(), name="null data requests"),
+				path('null_data_req/',NullDataRequestView.as_view(), name="null data requests"),
 
 				path('religion/',ReligionView.as_view(), name="religion"),
 				path('job_sector/',Job_sectorView.as_view(), name="Job sectorView"),

@@ -50,6 +50,11 @@ class FriendRequestsSerializer(serializers.ModelSerializer):
 		model = FriendRequests
 		fields = '__all__'
 
+class NullDataRequestSerialzers(serializers.ModelSerializer):
+	class Meta:
+		model=NullDataRequest
+		fields = '__all__'
+		
 class ReligionSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Religion

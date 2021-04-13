@@ -409,11 +409,12 @@ class MatchOfTheDay(models.Model):
 	def __str__(self):
 		return "%s"%(self.user_id)
 
-# class NullDataRequest(models.Model):
+class NullDataRequest(models.Model):
 
-# 	user_id = models.CharField(max_length=100,null=True)
-# 	requested_user_id = models.CharField(max_length=100,null=True)
-# 	created_at = models.DateField()
+	main_user_id = models.CharField(max_length=100,null=True)
+	null_requested_user_id = models.CharField(max_length=100,null=True)
+	key_name = models.CharField(max_length=100,null=True)
+	key_data =  models.CharField(max_length=100,null=True)
 
-# 	def __str__(self):
-# 		return "%s"%(self.user_id)
+	def __str__(self):
+		return "%s"%(self.main_user_id)
