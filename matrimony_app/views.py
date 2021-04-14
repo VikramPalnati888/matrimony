@@ -1524,7 +1524,38 @@ class VisibleDataRequestView(APIView):
 				serializer.save()
 				return Response(serializer.data, status=status.HTTP_201_CREATED)
 			return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+	
+	def get(self, request):
+			user_id = request.GET.get('user_id')
+			response = {}
+			try:
+				req = VisibleDataRequest.objects.filter(visible_user_id=user_id, visible_status='Pending')
+				for data in req:
+					user_basic_obj = UserBasicDetails.objects.get(user__id = data.user.id)
+					serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+					response[data.id] = serializer1.data
+					user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+					serializer2=UserFullDetailsSerialzers(user_full, many=False)
+					response[data.id].update({"age":calculate_age(user_full.dateofbirth)})
+					response[data.id].update(serializer2.data)
+					req_data = FriendRequests.objects.get(user__id = data.user.id,requested_user_id=user_id)
+					serializer3=FriendRequestsSerializer(req_data,many=False)
+					response[data.id].update(serializer3.data)
+					try:
+						liked_obj = LikedStatus.objects.get(user__id=user_id,user_liked =data.id)
+						response[data.id].update({"LikedStatus":liked_obj.LikedStatus})
+					except Exception as e:
+						response[data.id].update({"LikedStatus":False})
+					try:
+						req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=data.id)
+						response[data.id].update({"Req_status":req_status.status})
+					except Exception as e:
+						response[data.id].update({"Req_status":False})
+			except Exception as e:
+				response['message'] = {'message': str(e)}
+				return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
+			return Response(response.values(),status=status.HTTP_200_OK)
+	
 	def put(self, request):
 		if not request.POST._mutable:
 			request.POST._mutable = True
