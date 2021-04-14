@@ -300,6 +300,8 @@ class droplistDetails(APIView):
 					"Drink_Hobbit":[dh.drink_Hobbit for dh in Drink_Hobbit.objects.all()],
 					"Smoke_Hobbit":[smoke.smoke_Hobbit for smoke in Smoke_Hobbit.objects.all()],
 					"Job_sector":[job.job_sector for job in Job_sector.objects.all()],
+					"College":[coll.college for coll in College.objects.all()],
+					"Weight":[weight.weight for weight in Weight.objects.all()],
 					}
 		return Response(response, status=status.HTTP_200_OK)
 

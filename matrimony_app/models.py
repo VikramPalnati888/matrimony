@@ -201,7 +201,7 @@ class Under_graduation(models.Model):
 	class Meta:
 		unique_together = ('under_graduation',)	
 	def __str__(self):
-		return self.qualification
+		return self.under_graduation
 
 class Post_graduation(models.Model):
 
