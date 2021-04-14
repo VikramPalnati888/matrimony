@@ -50,9 +50,9 @@ class FriendRequestsSerializer(serializers.ModelSerializer):
 		model = FriendRequests
 		fields = '__all__'
 
-class NullDataRequestSerialzers(serializers.ModelSerializer):
+class VisibleDataRequestSerialzers(serializers.ModelSerializer):
 	class Meta:
-		model=NullDataRequest
+		model=VisibleDataRequest
 		fields = '__all__'
 		
 class ReligionSerializer(serializers.ModelSerializer):
@@ -160,4 +160,12 @@ class HeightSerializer(serializers.ModelSerializer):
 class AgeSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Age
+		fields = '__all__'
+class CollegeSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = College
+		fields = '__all__'
+class WeightSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Weight
 		fields = '__all__'

@@ -581,6 +581,24 @@ class AgeView(APIView):
 			return Response(serializer.data, status=status.HTTP_201_CREATED)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class CollegeView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = CollegeSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class WeightView(APIView):
+	def post(self, request):
+		data = request.data
+		serializer = WeightSerializer(data = data)
+		if serializer.is_valid(): 
+			serializer.save()
+			return Response(serializer.data, status=status.HTTP_201_CREATED)
+		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 # main Funcationality start from here
 
 class NewMatches(APIView):
@@ -610,30 +628,20 @@ class NewMatches(APIView):
 							response[dt.id].update({"Req_status":req_status.status})
 						except Exception as e:
 							response[dt.id].update({"Req_status":False})
-						try:
-							ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=dt.id,key_name='weight')
-							response[dt.id].update({"weight":ls_obj.key_data,
-																"weight_status":True})
-						except Exception as e:
-							response[dt.id].update({"weight_status":False})
-						try:
-							ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=dt.id,key_name='diet_preference')
-							response[dt.id].update({"diet_preference":ls_obj.key_data,
-																"diet_preference_status":True})
-						except Exception as e:
-							response[dt.id].update({"diet_preference_status":False})
-						try:
-							ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=dt.id,key_name='drinking_habbit')
-							response[dt.id].update({"drinking_habbit":ls_obj.key_data,
-																"drinking_habbit_status":True})
-						except Exception as e:
-							response[dt.id].update({"drinking_habbit_status":False})
-						try:
-							ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=dt.id,key_name='smoking_habbit')
-							response[dt.id].update({"smoking_habbit":ls_obj.key_data,
-																"smoking_habbit_status":True})
-						except Exception as e:
-							response[int(viewed_data.user.id)].update({"smoking_habbit_status":False})
+						visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=dt.id)
+						res = {}
+						if visible_obj:
+							for visible_dt in visible_obj:
+								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+														"visible_status": visible_dt.visible_status}
+
+							response[dt.id].update({"visible_data":res.values()})
+						else:
+							response[int(dt.id)].update({"visible_data": [{
+																			"visible_status":"Pending",
+																			'key_name':None
+																			}]
+														})
 		except  Exception as e:
 			print(e)
 			if str(e) == "UserFullDetails matching query does not exist.":
@@ -725,7 +733,21 @@ class ViewdMatches(APIView):
 					req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=viewed_data.viewed_user_id)
 					response[user_full_obj.basic_details.user.id].update({"Req_status":req_status.status})
 				except Exception as e:
-					response[user_full_obj.basic_details.user.id].update({"Req_status":False})	
+					response[user_full_obj.basic_details.user.id].update({"Req_status":False})
+				visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=viewed_data.viewed_user_id)
+				res = {}
+				if visible_obj:
+					for visible_dt in visible_obj:
+						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+												"visible_status": visible_dt.visible_status}
+
+					response[user_full_obj.basic_details.user.id].update({"visible_data":res.values()})
+				else:
+					response[user_full_obj.basic_details.user.id].update({"visible_data": [{
+																	"visible_status":"Pending",
+																	'key_name':None
+																	}]
+												})
 		except  Exception as e:
 			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
@@ -891,7 +913,21 @@ class UgPgMatchesView(APIView):
 						req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=dt.basic_details.user.id)
 						response[int(dt.id)].update({"Req_status":req_status.status})
 					except Exception as e:
-						response[int(dt.id)].update({"Req_status":False})					
+						response[int(dt.id)].update({"Req_status":False})
+					visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=dt.basic_details.user.id)
+					res = {}
+					if visible_obj:
+						for visible_dt in visible_obj:
+							res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+													"visible_status": visible_dt.visible_status}
+
+						response[int(dt.id)].update({"visible_data":res.values()})
+					else:
+						response[int(dt.id)].update({"visible_data": [{
+																		"visible_status":"Pending",
+																		'key_name':None
+																		}]
+													})		
 		except Exception as e:
 			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
@@ -1015,7 +1051,21 @@ class MatchesByCatView(APIView):
 						req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=dt.basic_details.user.id)
 						response[int(dt.id)].update({"Req_status":req_status.status})
 					except Exception as e:
-						response[int(dt.id)].update({"Req_status":False})		
+						response[int(dt.id)].update({"Req_status":False})
+					visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=dt.basic_details.user.id)
+					res = {}
+					if visible_obj:
+						for visible_dt in visible_obj:
+							res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+													"visible_status": visible_dt.visible_status}
+
+						response[int(dt.id)].update({"visible_data":res.values()})
+					else:
+						response[int(dt.id)].update({"visible_data": [{
+																		"visible_status":"Pending",
+																		'key_name':None
+																		}]
+													})		
 		except Exception as e:
 			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
@@ -1047,6 +1097,20 @@ class DailyRecoView(APIView):
 							response[dt.id].update({"Req_status":req_status.status})
 						except Exception as e:
 							response[dt.id].update({"Req_status":False})
+						visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=dt.id)
+						res = {}
+						if visible_obj:
+							for visible_dt in visible_obj:
+								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+														"visible_status": visible_dt.visible_status}
+
+							response[dt.id].update({"visible_data":res.values()})
+						else:
+							response[dt.id].update({"visible_data": [{
+																			"visible_status":"Pending",
+																			'key_name':None
+																			}]
+														})
 		except  Exception as e:
 			if str(e) == "UserFullDetails matching query does not exist.":
 				dl_user = User.objects.get(id=dt.id)
@@ -1088,6 +1152,20 @@ class RequestsView(APIView):
 					response[data.id].update({"Req_status":req_status.status})
 				except Exception as e:
 					response[data.id].update({"Req_status":False})
+				visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=data.id)
+				res = {}
+				if visible_obj:
+					for visible_dt in visible_obj:
+						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+												"visible_status": visible_dt.visible_status}
+
+					response[data.id].update({"visible_data":res.values()})
+				else:
+					response[data.id].update({"visible_data": [{
+																	"visible_status":"Pending",
+																	'key_name':None
+																	}]
+												})
 		except Exception as e:
 			response['message'] = {'message': str(e)}
 			return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
@@ -1159,6 +1237,20 @@ class InterestedView(APIView):
 					response[data.id].update({"Req_status":req_status.status})
 				except Exception as e:
 					response[data.id].update({"Req_status":False})
+				visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=data.requested_user_id)
+				res = {}
+				if visible_obj:
+					for visible_dt in visible_obj:
+						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+												"visible_status": visible_dt.visible_status}
+
+					response[data.id].update({"visible_data":res.values()})
+				else:
+					response[data.id].update({"visible_data": [{
+																	"visible_status":"Pending",
+																	'key_name':None
+																	}]
+												})
 		except Exception as e:
 			print(e)
 			response['message'] = {'message': str(e)}
@@ -1193,6 +1285,20 @@ class AcceptedView(APIView):
 					response[data.id].update({"Req_status":req_status.status})
 				except Exception as e:
 					response[data.id].update({"Req_status":False})
+				visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=data.requested_user_id)
+				res = {}
+				if visible_obj:
+					for visible_dt in visible_obj:
+						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+												"visible_status": visible_dt.visible_status}
+
+					response[data.id].update({"visible_data":res.values()})
+				else:
+					response[data.id].update({"visible_data": [{
+																	"visible_status":"Pending",
+																	'key_name':None
+																	}]
+												})
 		except Exception as e:
 			print(e)
 			response['message'] = {'message':str(e)}
@@ -1222,7 +1328,20 @@ class RejectedView(APIView):
 					response[data.id].update({"LikedStatus":liked_obj.LikedStatus})
 				except Exception as e:
 					response[data.id].update({"LikedStatus":False})
+				visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=data.requested_user_id)
+				res = {}
+				if visible_obj:
+					for visible_dt in visible_obj:
+						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+												"visible_status": visible_dt.visible_status}
 
+					response[data.id].update({"visible_data":res.values()})
+				else:
+					response[data.id].update({"visible_data": [{
+																	"visible_status":"Pending",
+																	'key_name':None
+																	}]
+												})
 		except Exception as e:
 			print(e)
 			response['message'] = {'message': str(e)}
@@ -1259,31 +1378,20 @@ class ViewdByOthersMatches(APIView):
 					response[int(req_status.requested_user_id)].update({"Req_status":req_status.status})
 				except Exception as e:
 					response[int(viewed_data.user.id)].update({"Req_status":False})
-				try:
-					ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=viewed_data.user.id,key_name='weight')
-					response[int(viewed_data.user.id)].update({"weight":ls_obj.key_data,
-														"weight_status":True})
-				except Exception as e:
-					response[int(viewed_data.user.id)].update({"weight_status":False})
-				try:
-					ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=viewed_data.user.id,key_name='diet_preference')
-					response[int(viewed_data.user.id)].update({"diet_preference":ls_obj.key_data,
-														"diet_preference_status":True})
-				except Exception as e:
-					response[int(viewed_data.user.id)].update({"diet_preference_status":False})
-				try:
-					ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=viewed_data.user.id,key_name='drinking_habbit')
-					response[int(viewed_data.user.id)].update({"drinking_habbit":ls_obj.key_data,
-														"drinking_habbit_status":True})
-				except Exception as e:
-					response[int(viewed_data.user.id)].update({"drinking_habbit_status":False})
-				try:
-					ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=viewed_data.user.id,key_name='smoking_habbit')
-					response[int(viewed_data.user.id)].update({"smoking_habbit":ls_obj.key_data,
-														"smoking_habbit_status":True})
-				except Exception as e:
-					response[int(viewed_data.user.id)].update({"smoking_habbit_status":False})
+				visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=viewed_data.user.id)
+				res = {}
+				if visible_obj:
+					for visible_dt in visible_obj:
+						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+												"visible_status": visible_dt.visible_status}
 
+					response[int(viewed_data.user.id)].update({"visible_data":res.values()})
+				else:
+					response[int(viewed_data.user.id)].update({"visible_data": [{
+																	"visible_status":"Pending",
+																	'key_name':None
+																	}]
+												})
 		except  Exception as e:
 			print(e)
 			return Response({"message":str(e)})
@@ -1374,77 +1482,54 @@ class MatchOfTheDayView(APIView):
 						response[int(dt.user_id)].update({"Req_status":req_status.status})
 					except Exception as e:
 						response[int(dt.user_id)].update({"Req_status":False})
+					visible_obj = VisibleDataRequest.objects.filter(main_user_id=user,visible_user_id=dt.user_id)
+					res = {}
+					if visible_obj:
+						for visible_dt in visible_obj:
+							res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+													"visible_status": visible_dt.visible_status}
 
-					try:
-						ls_obj = NullDataRequest.objects.get(main_user_id=user,null_requested_user_id=dt.user_id,key_name='weight')
-						response[int(dt.user_id)].update({"weight":ls_obj.key_data,
-															"weight_status":True})
-					except Exception as e:
-						response[int(dt.user_id)].update({"weight_status":False})
-					try:
-						ls_obj = NullDataRequest.objects.get(main_user_id=user,null_requested_user_id=dt.user_id,key_name='diet_preference')
-						response[int(dt.user_id)].update({"diet_preference":ls_obj.key_data,
-															"diet_preference_status":True})
-					except Exception as e:
-						response[int(dt.user_id)].update({"diet_preference_status":False})
-					try:
-						ls_obj = NullDataRequest.objects.get(main_user_id=user,null_requested_user_id=dt.user_id,key_name='drinking_habbit')
-						response[int(dt.user_id)].update({"drinking_habbit":ls_obj.key_data,
-															"drinking_habbit_status":True})
-					except Exception as e:
-						response[int(dt.user_id)].update({"drinking_habbit_status":False})
-					try:
-						ls_obj = NullDataRequest.objects.get(main_user_id=user,null_requested_user_id=dt.user_id,key_name='smoking_habbit')
-						response[int(dt.user_id)].update({"smoking_habbit":ls_obj.key_data,
-															"smoking_habbit_status":True})
-					except Exception as e:
-						response[int(dt.user_id)].update({"smoking_habbit_status":False})
+						response[int(dt.user_id)].update({"visible_data":res.values()})
+					else:
+						response[int(dt.user_id)].update({"visible_data": [{
+																		"visible_status":"Pending",
+																		'key_name':None
+																		}]
+													})
 
 		except  Exception as e:
 			print(e)
 			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
-class NullDataRequestView(APIView):
+class VisibleDataRequestView(APIView):
 	def post(self, request):
+		if not request.POST._mutable:
+			request.POST._mutable = True
 		user_id = request.GET.get('user_id')
-		null_requested_user_id = request.data.get('null_requested_user_id')
-		key_name = request.data.get('key_name')
-		key_data = request.data.get('key_data')
+		data = request.data
+		response = {}
+		data['main_user_id']=user_id
+		data['visible_status']="Pending"
 		try:
-			ls_obj = NullDataRequest.objects.get(main_user_id=user_id,null_requested_user_id=null_requested_user_id,key_name=key_name)
-			if ls_obj.key_data:
-				return Response({
-								"id":ls_obj.id,
-								"user_id":ls_obj.main_user_id,
-								"null_requested_user_id":ls_obj.null_requested_user_id,
-								"key_name":ls_obj.key_name,
-								"key_data":ls_obj.key_data,
-								"null_requested_status":True})
-			else:
-				return Response({
-								"id":ls_obj.id,
-								"user_id":ls_obj.main_user_id,
-								"null_requested_user_id":ls_obj.null_requested_user_id,
-								"key_name":ls_obj.key_name,
-								"key_data":ls_obj.key_data,
-								"null_requested_status":False,
-								"message":"requested sent successful"})
+			visible_obj = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data['visible_user_id'],key_name=data['key_name'])
+			serializer2=VisibleDataRequestSerialzers(visible_obj,many=False)
+			response.update(serializer2.data)
+			return Response(response,status=status.HTTP_200_OK)
 		except Exception as e:
-			NullDataRequest.objects.create(main_user_id=user_id,null_requested_user_id=null_requested_user_id,key_name=key_name)
-			return Response({"message":"Null request data saved Successful",
-							"null_requested_status":True})
-		return Response([{"message":"Images Stored Successful"}],status=status.HTTP_200_OK)
+			serializer = VisibleDataRequestSerialzers(data = data)
+			if serializer.is_valid(): 
+				serializer.save()
+				return Response(serializer.data, status=status.HTTP_201_CREATED)
+			return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 	def put(self, request):
 		if not request.POST._mutable:
 			request.POST._mutable = True
-		requested_user_id = request.GET.get('null_requested_user_id')
+		visible_user_id = request.GET.get('visible_user_id')
 		data = request.data
-		print(data['user_id'])
-		queryset = NullDataRequest.objects.get(main_user_id=data['user_id'],null_requested_user_id=requested_user_id,key_name=data['key_name'])
-		print(queryset)
-		req_serializer = NullDataRequestSerialzers(queryset, data=data, partial=True)
+		queryset = VisibleDataRequest.objects.get(main_user_id=data['user_id'],visible_user_id=visible_user_id,key_name=data['key_name'])
+		req_serializer = VisibleDataRequestSerialzers(queryset, data=data, partial=True)
 		if req_serializer.is_valid():
 			req_serializer.save()
 			return Response(req_serializer.data,status=status.HTTP_200_OK)

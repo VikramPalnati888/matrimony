@@ -307,7 +307,6 @@ class Caste(models.Model):
 	def __str__(self):
 		return self.caste
 
-
 class Annual_income(models.Model):
 
 	annual_income=models.CharField(max_length=20)
@@ -380,6 +379,22 @@ class Family_type(models.Model):
 	def __str__(self):
 		return self.family_type
 
+class College(models.Model):
+
+	college=models.CharField(max_length=100)
+	class Meta:
+		unique_together = ('college',)	
+	def __str__(self):
+		return self.college
+
+class Weight(models.Model):
+
+	weight=models.CharField(max_length=100)
+	class Meta:
+		unique_together = ('weight',)	
+	def __str__(self):
+		return self.weight
+
 class FriendRequests(models.Model):
 
 	request_status_types = (
@@ -409,12 +424,16 @@ class MatchOfTheDay(models.Model):
 	def __str__(self):
 		return "%s"%(self.user_id)
 
-class NullDataRequest(models.Model):
-
+class VisibleDataRequest(models.Model):
+	visible_status_types = (
+		("Pending","Pending"),
+		("Visible","Visible"),
+		("Unvisible","Unvisible"),
+		)
 	main_user_id = models.CharField(max_length=100,null=True)
-	null_requested_user_id = models.CharField(max_length=100,null=True)
+	visible_user_id = models.CharField(max_length=100,null=True)
 	key_name = models.CharField(max_length=100,null=True)
-	key_data =  models.CharField(max_length=100,null=True)
+	visible_status = models.CharField(choices = visible_status_types, default="Pending", max_length = 25)
 
 	def __str__(self):
 		return "%s"%(self.main_user_id)

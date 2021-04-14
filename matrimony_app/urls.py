@@ -31,7 +31,7 @@ urlpatterns = [
 				path('accepted_profiles/',AcceptedView.as_view(), name="accepted profiles View"),
 				path('rejected_profiles/',RejectedView.as_view(), name="rejected profiles View"),
 				path('viewdbyothers/',ViewdByOthersMatches.as_view(), name="viewd by others"),
-				path('null_data_req/',NullDataRequestView.as_view(), name="null data requests"),
+				path('visible_data_req/',VisibleDataRequestView.as_view(), name="visible data requests"),
 
 				path('religion/',ReligionView.as_view(), name="religion"),
 				path('job_sector/',Job_sectorView.as_view(), name="Job sectorView"),
@@ -59,6 +59,9 @@ urlpatterns = [
 				path('mother_Tongue/',Mother_TongueView.as_view(), name="mother_Tongue"),
 				path('physical_status/',Physical_statusView.as_view(), name="physical_status"),
 				path('mother_Occ/',Mother_OccView.as_view(), name="mother_Occ"),
+				path('college/',CollegeView.as_view(), name="mother_Occ"),
+				path('weight/',WeightView.as_view(), name="mother_Occ"),
+
 
 
 			]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
