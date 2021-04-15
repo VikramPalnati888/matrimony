@@ -1555,19 +1555,19 @@ class VisibleDataRequestView(APIView):
 				for data in req:
 					user_basic_obj = UserBasicDetails.objects.get(user__id = data.main_user_id)
 					serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
-					response[data.id] = serializer1.data
+					response[data.main_user_id] = serializer1.data
 					user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 					serializer2=UserFullDetailsSerialzers(user_full, many=False)
-					response[data.id].update({"age":calculate_age(user_full.dateofbirth)})
-					response[data.id].update(serializer2.data)
+					response[data.main_user_id].update({"age":calculate_age(user_full.dateofbirth)})
+					response[data.main_user_id].update(serializer2.data)
 					try:
 						liked_obj = LikedStatus.objects.get(user__id=data.main_user_id,user_liked =user_id)
-						response[data.id].update({"LikedStatus":liked_obj.LikedStatus})
+						response[data.main_user_id].update({"LikedStatus":liked_obj.LikedStatus})
 					except Exception as e:
-						response[data.id].update({"LikedStatus":False})
+						response[data.main_user_id].update({"LikedStatus":False})
 					try:
 						req_status = FriendRequests.objects.get(user__id=data.main_user_id,requested_user_id=user_id)
-						response[data.id].update({"requested_user_id":req_status.requested_user_id,
+						response[data.main_user_id].update({"requested_user_id":req_status.requested_user_id,
 													"created_at":req_status.created_at,
 													"created_time":req_status.created_time,
 													"request_status":req_status.request_status,
@@ -1576,7 +1576,7 @@ class VisibleDataRequestView(APIView):
 													"status":req_status.status,
 													"Req_status":req_status.status})
 					except Exception as e:
-						response[data.id].update({"Req_status":False})
+						response[data.main_user_id].update({"Req_status":False})
 					
 					visible_obj = VisibleDataRequest.objects.filter(main_user_id=data.main_user_id,visible_user_id=user_id)
 					res = {}
@@ -1586,9 +1586,9 @@ class VisibleDataRequestView(APIView):
 							res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 													"visible_status": visible_dt.visible_status}
 
-						response[data.id].update({"visible_data":res.values()})
+						response[data.main_user_id].update({"visible_data":res.values()})
 					else:
-						response[data.id].update({"visible_data": [{
+						response[data.main_user_id].update({"visible_data": [{
 																		"visible_status":"Pending",
 																		'key_name':None
 																		}]
