@@ -180,14 +180,14 @@ class UserFullDetailsView(APIView):
 			request.POST._mutable = True
 		response = {}
 		userId = request.GET.get('user_id')
-		main_user_id = request.GET.get('main_user_id')
-		login_user_id = request.GET.get('login_user_id')
+		main_user_id = request.GET.get('userId')
+		another_user_id = request.GET.get('another_user_id')
 		try:
 			if userId:
 				user_basic_obj = UserBasicDetails.objects.get(user__id = userId)
 				user_qs = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 			else:	
-				user_basic_obj = UserBasicDetails.objects.get(user__id = main_user_id)
+				user_basic_obj = UserBasicDetails.objects.get(user__id = another_user_id)
 				user_qs = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
 		except Exception as e:
 			return Response({"message":str(e)})
@@ -199,18 +199,40 @@ class UserFullDetailsView(APIView):
 		response[main_user_id].update(serializer2.data)
 		try:
 			if userId:
-				liked_obj = LikedStatus.objects.get(user__id = login_user_id,user_liked=userId)
+				liked_obj = LikedStatus.objects.get(user__id = main_user_id,user_liked=another_user_id)
 				response[main_user_id].update({"LikedStatus":liked_obj.LikedStatus})
 			else:
-				liked_obj = LikedStatus.objects.get(user__id = login_user_id,user_liked=main_user_id)
+				liked_obj = LikedStatus.objects.get(user__id = main_user_id,user_liked=another_user_id)
 				response[main_user_id].update({"LikedStatus":liked_obj.LikedStatus})
 		except Exception as e:
 			response[main_user_id].update({"LikedStatus":False})
 		try:
-			req_status = FriendRequests.objects.get(user__id=login_user_id,requested_user_id=main_user_id)
-			response[main_user_id].update({"Req_status":req_status.status})
+			req_status = FriendRequests.objects.get(user__id=main_user_id,requested_user_id=another_user_id)
+			response[main_user_id].update({"requested_user_id":req_status.requested_user_id,
+										"created_at":req_status.created_at,
+										"created_time":req_status.created_time,
+										"request_status":req_status.request_status,
+										"updated_at":req_status.updated_at,
+										"updated_time":req_status.updated_time,
+										"status":req_status.status,
+										"Req_status":req_status.status})
 		except Exception as e:
 			response[main_user_id].update({"Req_status":False})
+		visible_obj = VisibleDataRequest.objects.filter(main_user_id=main_user_id,visible_user_id=another_user_id)
+		res = {}
+		if visible_obj:
+			print(visible_obj)
+			for visible_dt in visible_obj:
+				res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+										"visible_status": visible_dt.visible_status}
+
+			response[main_user_id].update({"visible_data":res.values()})
+		else:
+			response[main_user_id].update({"visible_data": [{
+															"visible_status":"Pending",
+															'key_name':None
+															}]
+										})
 		return Response(response.values(),status=status.HTTP_200_OK)
 
 	def post(self, request):
@@ -630,7 +652,7 @@ class NewMatches(APIView):
 							response[dt.id].update({"Req_status":req_status.status})
 						except Exception as e:
 							response[dt.id].update({"Req_status":False})
-						visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=dt.id)
+						visible_obj = VisibleDataRequest.objects.filter(main_user_id=dt.id,visible_user_id=user_id)
 						res = {}
 						if visible_obj:
 							for visible_dt in visible_obj:
@@ -1559,6 +1581,7 @@ class VisibleDataRequestView(APIView):
 					visible_obj = VisibleDataRequest.objects.filter(main_user_id=data.main_user_id,visible_user_id=user_id)
 					res = {}
 					if visible_obj:
+						print(visible_obj)
 						for visible_dt in visible_obj:
 							res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 													"visible_status": visible_dt.visible_status}
