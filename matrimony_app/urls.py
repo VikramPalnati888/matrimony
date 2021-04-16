@@ -32,6 +32,8 @@ urlpatterns = [
 				path('rejected_profiles/',RejectedView.as_view(), name="rejected profiles View"),
 				path('viewdbyothers/',ViewdByOthersMatches.as_view(), name="viewd by others"),
 				path('visible_data_req/',VisibleDataRequestView.as_view(), name="visible data requests"),
+				path('accepted_visible_data/',AcceptedVisibleDataView.as_view(), name="accepted Visible Data"),
+				path('rejected_visible_data/',RejectedVisibleDataView.as_view(), name="rejected Visible Data"),
 
 				path('religion/',ReligionView.as_view(), name="religion"),
 				path('job_sector/',Job_sectorView.as_view(), name="Job sectorView"),

@@ -897,7 +897,7 @@ class UgPgMatchesView(APIView):
 			main_user = UserBasicDetails.objects.get(user__id = user_id)
 			main_user_full = UserFullDetails.objects.get(basic_details__id=main_user.id)
 			if ug == 'under_graduation':
-				user_full_obj = UserFullDetails.objects.all().order_by('under_graduation')
+				user_full_obj = UserFullDetails.objects.filter(post_graduation="None")#.order_by('under_graduation')
 			elif pg == 'post_graduation':
 				user_full_obj = UserFullDetails.objects.all().order_by('post_graduation')
 			elif under_graduation_name:
@@ -922,36 +922,71 @@ class UgPgMatchesView(APIView):
 			for dt in user_full_obj:
 				if main_user.user.id != dt.basic_details.user.id and  main_user_full.gender != dt.gender:
 					user_basic_obj = UserBasicDetails.objects.get(user__id = dt.basic_details.user.id)
-					serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
-					response[int(dt.id)] = serializer1.data
-					user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
-					serializer2=UserFullDetailsSerialzers(user_full, many=False)
-					response[int(dt.id)].update({"age":calculate_age(dt.dateofbirth)})
-					response[int(dt.id)].update(serializer2.data)
-					try:
-						liked_obj = LikedStatus.objects.get(user__id=user_id, user_liked = dt.basic_details.user.id)
-						response[int(dt.id)].update({"LikedStatus":liked_obj.LikedStatus})
-					except Exception as e:
-						response[int(dt.id)].update({"LikedStatus":False})
-					try:
-						req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=dt.basic_details.user.id)
-						response[int(dt.id)].update({"Req_status":req_status.status})
-					except Exception as e:
-						response[int(dt.id)].update({"Req_status":False})
-					visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=dt.basic_details.user.id)
-					res = {}
-					if visible_obj:
-						for visible_dt in visible_obj:
-							res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
-													"visible_status": visible_dt.visible_status}
 
-						response[int(dt.id)].update({"visible_data":res.values()})
+					user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+					if pg:
+						if user_full.post_graduation != 'None':
+							print("entered if")
+							serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+							response[int(dt.id)] = serializer1.data
+							serializer2=UserFullDetailsSerialzers(user_full, many=False)
+							response[int(dt.id)].update({"age":calculate_age(dt.dateofbirth)})
+							response[int(dt.id)].update(serializer2.data)
+							try:
+								liked_obj = LikedStatus.objects.get(user__id=user_id, user_liked = dt.basic_details.user.id)
+								response[int(dt.id)].update({"LikedStatus":liked_obj.LikedStatus})
+							except Exception as e:
+								response[int(dt.id)].update({"LikedStatus":False})
+							try:
+								req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=dt.basic_details.user.id)
+								response[int(dt.id)].update({"Req_status":req_status.status})
+							except Exception as e:
+								response[int(dt.id)].update({"Req_status":False})
+							visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=dt.basic_details.user.id)
+							res = {}
+							if visible_obj:
+								for visible_dt in visible_obj:
+									res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+															"visible_status": visible_dt.visible_status}
+
+								response[int(dt.id)].update({"visible_data":res.values()})
+							else:
+								response[int(dt.id)].update({"visible_data": [{
+																				"visible_status":"Pending",
+																				'key_name':None
+																				}]
+															})	
 					else:
-						response[int(dt.id)].update({"visible_data": [{
-																		"visible_status":"Pending",
-																		'key_name':None
-																		}]
-													})		
+						print("entered else")
+						serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+						response[int(dt.id)] = serializer1.data
+						serializer2=UserFullDetailsSerialzers(user_full, many=False)
+						response[int(dt.id)].update({"age":calculate_age(dt.dateofbirth)})
+						response[int(dt.id)].update(serializer2.data)
+						try:
+							liked_obj = LikedStatus.objects.get(user__id=user_id, user_liked = dt.basic_details.user.id)
+							response[int(dt.id)].update({"LikedStatus":liked_obj.LikedStatus})
+						except Exception as e:
+							response[int(dt.id)].update({"LikedStatus":False})
+						try:
+							req_status = FriendRequests.objects.get(user__id=user_id,requested_user_id=dt.basic_details.user.id)
+							response[int(dt.id)].update({"Req_status":req_status.status})
+						except Exception as e:
+							response[int(dt.id)].update({"Req_status":False})
+						visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=dt.basic_details.user.id)
+						res = {}
+						if visible_obj:
+							for visible_dt in visible_obj:
+								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+														"visible_status": visible_dt.visible_status}
+
+							response[int(dt.id)].update({"visible_data":res.values()})
+						else:
+							response[int(dt.id)].update({"visible_data": [{
+																			"visible_status":"Pending",
+																			'key_name':None
+																			}]
+														})		
 		except Exception as e:
 			return Response({"message":str(e)})
 		return Response(response.values(),status=status.HTTP_200_OK)
@@ -1609,3 +1644,107 @@ class VisibleDataRequestView(APIView):
 			req_serializer.save()
 			return Response(req_serializer.data,status=status.HTTP_200_OK)
 		return Response(req_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AcceptedVisibleDataView(APIView):
+	def get(self, request):
+				user_id = request.GET.get('user_id')
+				response = {}
+				try:
+					req = VisibleDataRequest.objects.filter(main_user_id=user_id, visible_status='Visible')
+					for data in req:
+						user_basic_obj = UserBasicDetails.objects.get(user__id = data.visible_user_id)
+						serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+						response[data.visible_user_id] = serializer1.data
+						user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+						serializer2=UserFullDetailsSerialzers(user_full, many=False)
+						response[data.visible_user_id].update({"age":calculate_age(user_full.dateofbirth)})
+						response[data.visible_user_id].update(serializer2.data)
+						try:
+							liked_obj = LikedStatus.objects.get(user__id=data.visible_user_id,user_liked =user_id)
+							response[data.visible_user_id].update({"LikedStatus":liked_obj.LikedStatus})
+						except Exception as e:
+							response[data.visible_user_id].update({"LikedStatus":False})
+						try:
+							req_status = FriendRequests.objects.get(user__id=data.visible_user_id,requested_user_id=user_id)
+							response[data.visible_user_id].update({"requested_user_id":req_status.requested_user_id,
+														"created_at":req_status.created_at,
+														"created_time":req_status.created_time,
+														"request_status":req_status.request_status,
+														"updated_at":req_status.updated_at,
+														"updated_time":req_status.updated_time,
+														"status":req_status.status,
+														"Req_status":req_status.status})
+						except Exception as e:
+							response[data.visible_user_id].update({"Req_status":False})
+						
+						visible_obj = VisibleDataRequest.objects.filter(visible_user_id=data.visible_user_id,main_user_id=user_id)
+						res = {}
+						if visible_obj:
+							print(visible_obj)
+							for visible_dt in visible_obj:
+								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+														"visible_status": visible_dt.visible_status}
+
+							response[data.visible_user_id].update({"visible_data":res.values()})
+						else:
+							response[data.visible_user_id].update({"visible_data": [{
+																			"visible_status":"Pending",
+																			'key_name':None
+																			}]
+														})
+				except Exception as e:
+					response['message'] = {'message': str(e)}
+					return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
+				return Response(response.values(),status=status.HTTP_200_OK)
+
+class RejectedVisibleDataView(APIView):
+	def get(self, request):
+				user_id = request.GET.get('user_id')
+				response = {}
+				try:
+					req = VisibleDataRequest.objects.filter(main_user_id=user_id, visible_status='Unvisible')
+					for data in req:
+						user_basic_obj = UserBasicDetails.objects.get(user__id = data.visible_user_id)
+						serializer1=UserBasicDetailsSerialzers(user_basic_obj, many=False)
+						response[data.visible_user_id] = serializer1.data
+						user_full = UserFullDetails.objects.get(basic_details__id=user_basic_obj.id)
+						serializer2=UserFullDetailsSerialzers(user_full, many=False)
+						response[data.visible_user_id].update({"age":calculate_age(user_full.dateofbirth)})
+						response[data.visible_user_id].update(serializer2.data)
+						try:
+							liked_obj = LikedStatus.objects.get(user__id=data.visible_user_id,user_liked =user_id)
+							response[data.visible_user_id].update({"LikedStatus":liked_obj.LikedStatus})
+						except Exception as e:
+							response[data.visible_user_id].update({"LikedStatus":False})
+						try:
+							req_status = FriendRequests.objects.get(user__id=data.visible_user_id,requested_user_id=user_id)
+							response[data.visible_user_id].update({"requested_user_id":req_status.requested_user_id,
+														"created_at":req_status.created_at,
+														"created_time":req_status.created_time,
+														"request_status":req_status.request_status,
+														"updated_at":req_status.updated_at,
+														"updated_time":req_status.updated_time,
+														"status":req_status.status,
+														"Req_status":req_status.status})
+						except Exception as e:
+							response[data.visible_user_id].update({"Req_status":False})
+						
+						visible_obj = VisibleDataRequest.objects.filter(visible_user_id=data.visible_user_id,main_user_id=user_id)
+						res = {}
+						if visible_obj:
+							print(visible_obj)
+							for visible_dt in visible_obj:
+								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
+														"visible_status": visible_dt.visible_status}
+
+							response[data.visible_user_id].update({"visible_data":res.values()})
+						else:
+							response[data.visible_user_id].update({"visible_data": [{
+																			"visible_status":"Pending",
+																			'key_name':None
+																			}]
+														})
+				except Exception as e:
+					response['message'] = {'message': str(e)}
+					return Response(response.values(),status=status.HTTP_400_BAD_REQUEST)
+				return Response(response.values(),status=status.HTTP_200_OK)
