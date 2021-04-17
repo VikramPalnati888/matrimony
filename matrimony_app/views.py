@@ -221,13 +221,38 @@ class UserFullDetailsView(APIView):
 		visible_obj = VisibleDataRequest.objects.filter(main_user_id=main_user_id,visible_user_id=another_user_id)
 		res = {}
 		if visible_obj:
-			print(visible_obj)
 			for visible_dt in visible_obj:
+				try:
+					visible_food = VisibleDataRequest.objects.get(main_user_id=main_user_id,visible_user_id=another_user_id,key_name='food')
+					response[main_user_id].update({"food_status":True})
+				except:
+					response[main_user_id].update({"food_status":False})
+									
+				try:
+					visible_smoke = VisibleDataRequest.objects.get(main_user_id=main_user_id,visible_user_id=another_user_id,key_name='smoke')
+					response[main_user_id].update({"smoke_status":True})
+				except:
+					response[main_user_id].update({"smoke_status":False})
+				try:
+					visible_drink = VisibleDataRequest.objects.get(main_user_id=main_user_id,visible_user_id=another_user_id,key_name='drink')
+					response[main_user_id].update({"drink_status":True})
+				except:
+					response[main_user_id].update({"drink_status":False})
+
+				try:
+					visible_phone = VisibleDataRequest.objects.get(main_user_id=main_user_id,visible_user_id=another_user_id,key_name='phone')
+					response[main_user_id].update({"phone_status":True})
+				except:
+					response[main_user_id].update({"phone_status":False})
 				res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 										"visible_status": visible_dt.visible_status}
 
 			response[main_user_id].update({"visible_data":res.values()})
 		else:
+			response[main_user_id].update({"food_status":False})
+			response[main_user_id].update({"smoke_status":False})
+			response[main_user_id].update({"drink_status":False})
+			response[main_user_id].update({"phone_status":False})
 			response[main_user_id].update({"visible_data": [{
 															"visible_status":"Pending",
 															'key_name':None
@@ -656,16 +681,41 @@ class NewMatches(APIView):
 						res = {}
 						if visible_obj:
 							for visible_dt in visible_obj:
+								try:
+									visible_food = VisibleDataRequest.objects.get(main_user_id=dt.id,visible_user_id=user_id,key_name='food')
+									response[dt.id].update({"food_status":True})
+								except:
+									response[dt.id].update({"food_status":False})
+													
+								try:
+									visible_smoke = VisibleDataRequest.objects.get(main_user_id=dt.id,visible_user_id=user_id,key_name='smoke')
+									response[dt.id].update({"smoke_status":True})
+								except:
+									response[dt.id].update({"smoke_status":False})
+								try:
+									visible_drink = VisibleDataRequest.objects.get(main_user_id=dt.id,visible_user_id=user_id,key_name='drink')
+									response[dt.id].update({"drink_status":True})
+								except:
+									response[dt.id].update({"drink_status":False})
+								
+								try:
+									visible_phone = VisibleDataRequest.objects.get(main_user_id=dt.id,visible_user_id=user_id,key_name='phone')
+									response[dt.id].update({"phone_status":True})
+								except:
+									response[dt.id].update({"phone_status":False})
 								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 														"visible_status": visible_dt.visible_status}
 
 							response[dt.id].update({"visible_data":res.values()})
 						else:
+							response[dt.id].update({"food_status":False})
+							response[dt.id].update({"smoke_status":False})
+							response[dt.id].update({"drink_status":False})
+							response[dt.id].update({"phone_status":False})
 							response[int(dt.id)].update({"visible_data": [{
 																			"visible_status":"Pending",
 																			'key_name':None
-																			}]
-														})
+																			}]})
 		except  Exception as e:
 			print(e)
 			if str(e) == "UserFullDetails matching query does not exist.":
@@ -744,7 +794,7 @@ class ViewdMatches(APIView):
 				response[user_full_obj.basic_details.user.id].update({"age":calculate_age(user_full_obj.dateofbirth)})
 				response[user_full_obj.basic_details.user.id].update(serializer2.data)
 				
-				viewed_details_obj = Viewed_matches.objects.get(viewed_user_id = int(viewed_data.viewed_user_id))
+				viewed_details_obj = Viewed_matches.objects.get(user__id=user_id,viewed_user_id = int(viewed_data.viewed_user_id))
 				serializer3=ViewdDetailsSerialzers(viewed_details_obj,many=False)
 				response[user_full_obj.basic_details.user.id].update({'viewd_status':viewed_data.viewd_status})
 				try:
@@ -761,12 +811,38 @@ class ViewdMatches(APIView):
 				visible_obj = VisibleDataRequest.objects.filter(main_user_id=user_id,visible_user_id=viewed_data.viewed_user_id)
 				res = {}
 				if visible_obj:
+					try:
+						visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=viewed_data.viewed_user_id,key_name='food')
+						response[user_full_obj.basic_details.user.id].update({"food_status":True})
+					except:
+						response[user_full_obj.basic_details.user.id].update({"food_status":False})
+										
+					try:
+						visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=viewed_data.viewed_user_id,key_name='smoke')
+						response[user_full_obj.basic_details.user.id].update({"smoke_status":True})
+					except:
+						response[user_full_obj.basic_details.user.id].update({"smoke_status":False})
+					try:
+						visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=viewed_data.viewed_user_id,key_name='drink')
+						response[user_full_obj.basic_details.user.id].update({"drink_status":True})
+					except:
+						response[user_full_obj.basic_details.user.id].update({"drink_status":False})
+					
+					try:
+						visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=viewed_data.viewed_user_id,key_name='phone')
+						response[user_full_obj.basic_details.user.id].update({"phone_status":True})
+					except:
+						response[user_full_obj.basic_details.user.id].update({"phone_status":False})
 					for visible_dt in visible_obj:
 						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 												"visible_status": visible_dt.visible_status}
 
 					response[user_full_obj.basic_details.user.id].update({"visible_data":res.values()})
 				else:
+					response[user_full_obj.basic_details.user.id].update({"food_status":False})
+					response[user_full_obj.basic_details.user.id].update({"smoke_status":False})
+					response[user_full_obj.basic_details.user.id].update({"drink_status":False})
+					response[user_full_obj.basic_details.user.id].update({"phone_status":False})
 					response[user_full_obj.basic_details.user.id].update({"visible_data": [{
 																	"visible_status":"Pending",
 																	'key_name':None
@@ -946,11 +1022,37 @@ class UgPgMatchesView(APIView):
 							res = {}
 							if visible_obj:
 								for visible_dt in visible_obj:
+									try:
+										visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='food')
+										response[int(dt.id)].update({"food_status":True})
+									except:
+										response[int(dt.id)].update({"food_status":False})
+														
+									try:
+										visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='smoke')
+										response[int(dt.id)].update({"smoke_status":True})
+									except:
+										response[int(dt.id)].update({"smoke_status":False})
+									try:
+										visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='drink')
+										response[int(dt.id)].update({"drink_status":True})
+									except:
+										response[int(dt.id)].update({"drink_status":False})
+
+									try:
+										visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='phone')
+										response[int(dt.id)].update({"phone_status":True})
+									except:
+										response[int(dt.id)].update({"phone_status":False})
 									res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 															"visible_status": visible_dt.visible_status}
 
 								response[int(dt.id)].update({"visible_data":res.values()})
 							else:
+								response[int(dt.id)].update({"food_status":False})
+								response[int(dt.id)].update({"smoke_status":False})
+								response[int(dt.id)].update({"drink_status":False})
+								response[int(dt.id)].update({"phone_status":False})
 								response[int(dt.id)].update({"visible_data": [{
 																				"visible_status":"Pending",
 																				'key_name':None
@@ -977,11 +1079,37 @@ class UgPgMatchesView(APIView):
 						res = {}
 						if visible_obj:
 							for visible_dt in visible_obj:
+								try:
+									visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='food')
+									response[int(dt.id)].update({"food_status":True})
+								except:
+									response[int(dt.id)].update({"food_status":False})
+													
+								try:
+									visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='smoke')
+									response[int(dt.id)].update({"smoke_status":True})
+								except:
+									response[int(dt.id)].update({"smoke_status":False})
+								try:
+									visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='drink')
+									response[int(dt.id)].update({"drink_status":True})
+								except:
+									response[int(dt.id)].update({"drink_status":False})
+
+								try:
+									visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='phone')
+									response[int(dt.id)].update({"phone_status":True})
+								except:
+									response[int(dt.id)].update({"phone_status":False})
 								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 														"visible_status": visible_dt.visible_status}
 
 							response[int(dt.id)].update({"visible_data":res.values()})
 						else:
+							response[int(dt.id)].update({"food_status":False})
+							response[int(dt.id)].update({"smoke_status":False})
+							response[int(dt.id)].update({"drink_status":False})
+							response[int(dt.id)].update({"phone_status":False})
 							response[int(dt.id)].update({"visible_data": [{
 																			"visible_status":"Pending",
 																			'key_name':None
@@ -1115,11 +1243,37 @@ class MatchesByCatView(APIView):
 					res = {}
 					if visible_obj:
 						for visible_dt in visible_obj:
+							try:
+								visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='food')
+								response[int(dt.id)].update({"food_status":True})
+							except:
+								response[int(dt.id)].update({"food_status":False})
+												
+							try:
+								visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='smoke')
+								response[int(dt.id)].update({"smoke_status":True})
+							except:
+								response[int(dt.id)].update({"smoke_status":False})
+							try:
+								visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='drink')
+								response[int(dt.id)].update({"drink_status":True})
+							except:
+								response[int(dt.id)].update({"drink_status":False})
+
+							try:
+								visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.basic_details.user.id,key_name='phone')
+								response[int(dt.id)].update({"phone_status":True})
+							except:
+								response[int(dt.id)].update({"phone_status":False})
 							res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 													"visible_status": visible_dt.visible_status}
 
 						response[int(dt.id)].update({"visible_data":res.values()})
 					else:
+						response[int(dt.id)].update({"food_status":False})
+						response[int(dt.id)].update({"smoke_status":False})
+						response[int(dt.id)].update({"drink_status":False})
+						response[int(dt.id)].update({"phone_status":False})
 						response[int(dt.id)].update({"visible_data": [{
 																		"visible_status":"Pending",
 																		'key_name':None
@@ -1160,11 +1314,37 @@ class DailyRecoView(APIView):
 						res = {}
 						if visible_obj:
 							for visible_dt in visible_obj:
+								try:
+									visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.id,key_name='food')
+									response[dt.id].update({"food_status":True})
+								except:
+									response[dt.id].update({"food_status":False})
+													
+								try:
+									visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.id,key_name='smoke')
+									response[dt.id].update({"smoke_status":True})
+								except:
+									response[dt.id].update({"smoke_status":False})
+								try:
+									visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.id,key_name='drink')
+									response[dt.id].update({"drink_status":True})
+								except:
+									response[dt.id].update({"drink_status":False})
+
+								try:
+									visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=dt.id,key_name='phone')
+									response[dt.id].update({"phone_status":True})
+								except:
+									response[dt.id].update({"phone_status":False})
 								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 														"visible_status": visible_dt.visible_status}
 
 							response[dt.id].update({"visible_data":res.values()})
 						else:
+							response[dt.id].update({"food_status":False})
+							response[dt.id].update({"smoke_status":False})
+							response[dt.id].update({"drink_status":False})
+							response[dt.id].update({"phone_status":False})
 							response[dt.id].update({"visible_data": [{
 																			"visible_status":"Pending",
 																			'key_name':None
@@ -1215,6 +1395,28 @@ class RequestsView(APIView):
 				res = {}
 				if visible_obj:
 					for visible_dt in visible_obj:
+						try:
+							visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.id,key_name='food')
+							response[data.id].update({"food_status":True})
+						except:
+							response[data.id].update({"food_status":False})
+											
+						try:
+							visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.id,key_name='smoke')
+							response[data.id].update({"smoke_status":True})
+						except:
+							response[data.id].update({"smoke_status":False})
+						try:
+							visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.id,key_name='drink')
+							response[data.id].update({"drink_status":True})
+						except:
+							response[data.id].update({"drink_status":False})
+
+						try:
+							visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.id,key_name='phone')
+							response[data.id].update({"phone_status":True})
+						except:
+							response[data.id].update({"phone_status":False})
 						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 												"visible_status": visible_dt.visible_status}
 
@@ -1300,11 +1502,37 @@ class InterestedView(APIView):
 				res = {}
 				if visible_obj:
 					for visible_dt in visible_obj:
+						try:
+							visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='food')
+							response[data.id].update({"food_status":True})
+						except:
+							response[data.id].update({"food_status":False})
+											
+						try:
+							visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='smoke')
+							response[data.id].update({"smoke_status":True})
+						except:
+							response[data.id].update({"smoke_status":False})
+						try:
+							visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='drink')
+							response[data.id].update({"drink_status":True})
+						except:
+							response[data.id].update({"drink_status":False})
+
+						try:
+							visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='phone')
+							response[data.id].update({"phone_status":True})
+						except:
+							response[data.id].update({"phone_status":False})
 						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 												"visible_status": visible_dt.visible_status}
 
 					response[data.id].update({"visible_data":res.values()})
 				else:
+					response[data.id].update({"food_status":False})
+					response[data.id].update({"smoke_status":False})
+					response[data.id].update({"drink_status":False})
+					response[data.id].update({"phone_status":False})
 					response[data.id].update({"visible_data": [{
 																	"visible_status":"Pending",
 																	'key_name':None
@@ -1348,11 +1576,37 @@ class AcceptedView(APIView):
 				res = {}
 				if visible_obj:
 					for visible_dt in visible_obj:
+						try:
+							visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='food')
+							response[data.id].update({"food_status":True})
+						except:
+							response[data.id].update({"food_status":False})
+											
+						try:
+							visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='smoke')
+							response[data.id].update({"smoke_status":True})
+						except:
+							response[data.id].update({"smoke_status":False})
+						try:
+							visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='drink')
+							response[data.id].update({"drink_status":True})
+						except:
+							response[data.id].update({"drink_status":False})
+
+						try:
+							visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='phone')
+							response[data.id].update({"phone_status":True})
+						except:
+							response[data.id].update({"phone_status":False})
 						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 												"visible_status": visible_dt.visible_status}
 
 					response[data.id].update({"visible_data":res.values()})
 				else:
+					response[data.id].update({"food_status":False})
+					response[data.id].update({"smoke_status":False})
+					response[data.id].update({"drink_status":False})
+					response[data.id].update({"phone_status":False})
 					response[data.id].update({"visible_data": [{
 																	"visible_status":"Pending",
 																	'key_name':None
@@ -1391,11 +1645,37 @@ class RejectedView(APIView):
 				res = {}
 				if visible_obj:
 					for visible_dt in visible_obj:
+						try:
+							visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='food')
+							response[data.id].update({"food_status":True})
+						except:
+							response[data.id].update({"food_status":False})
+											
+						try:
+							visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='smoke')
+							response[data.id].update({"smoke_status":True})
+						except:
+							response[data.id].update({"smoke_status":False})
+						try:
+							visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='drink')
+							response[data.id].update({"drink_status":True})
+						except:
+							response[data.id].update({"drink_status":False})
+
+						try:
+							visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.requested_user_id,key_name='phone')
+							response[data.id].update({"phone_status":True})
+						except:
+							response[data.id].update({"phone_status":False})
 						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 												"visible_status": visible_dt.visible_status}
 
 					response[data.id].update({"visible_data":res.values()})
 				else:
+					response[data.id].update({"food_status":False})
+					response[data.id].update({"smoke_status":False})
+					response[data.id].update({"drink_status":False})
+					response[data.id].update({"phone_status":False})
 					response[data.id].update({"visible_data": [{
 																	"visible_status":"Pending",
 																	'key_name':None
@@ -1441,11 +1721,37 @@ class ViewdByOthersMatches(APIView):
 				res = {}
 				if visible_obj:
 					for visible_dt in visible_obj:
+						try:
+							visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=viewed_data.user.id,key_name='food')
+							response[int(viewed_data.user.id)].update({"food_status":True})
+						except:
+							response[int(viewed_data.user.id)].update({"food_status":False})
+											
+						try:
+							visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=viewed_data.user.id,key_name='smoke')
+							response[int(viewed_data.user.id)].update({"smoke_status":True})
+						except:
+							response[int(viewed_data.user.id)].update({"smoke_status":False})
+						try:
+							visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=viewed_data.user.id,key_name='drink')
+							response[int(viewed_data.user.id)].update({"drink_status":True})
+						except:
+							response[int(viewed_data.user.id)].update({"drink_status":False})
+
+						try:
+							visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=viewed_data.user.id,key_name='phone')
+							response[int(viewed_data.user.id)].update({"phone_status":True})
+						except:
+							response[int(viewed_data.user.id)].update({"phone_status":False})
 						res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 												"visible_status": visible_dt.visible_status}
 
 					response[int(viewed_data.user.id)].update({"visible_data":res.values()})
 				else:
+					response[int(viewed_data.user.id)].update({"food_status":False})
+					response[int(viewed_data.user.id)].update({"smoke_status":False})
+					response[int(viewed_data.user.id)].update({"drink_status":False})
+					response[int(viewed_data.user.id)].update({"phone_status":False})
 					response[int(viewed_data.user.id)].update({"visible_data": [{
 																	"visible_status":"Pending",
 																	'key_name':None
@@ -1545,11 +1851,37 @@ class MatchOfTheDayView(APIView):
 					res = {}
 					if visible_obj:
 						for visible_dt in visible_obj:
+							try:
+								visible_food = VisibleDataRequest.objects.get(main_user_id=user,visible_user_id=dt.user_id,key_name='food')
+								response[int(dt.user_id)].update({"food_status":True})
+							except:
+								response[int(dt.user_id)].update({"food_status":False})
+												
+							try:
+								visible_smoke = VisibleDataRequest.objects.get(main_user_id=user,visible_user_id=dt.user_id,key_name='smoke')
+								response[int(dt.user_id)].update({"smoke_status":True})
+							except:
+								response[int(dt.user_id)].update({"smoke_status":False})
+							try:
+								visible_drink = VisibleDataRequest.objects.get(main_user_id=user,visible_user_id=dt.user_id,key_name='drink')
+								response[int(dt.user_id)].update({"drink_status":True})
+							except:
+								response[int(dt.user_id)].update({"drink_status":False})
+
+							try:
+								visible_phone = VisibleDataRequest.objects.get(main_user_id=user,visible_user_id=dt.user_id,key_name='phone')
+								response[int(dt.user_id)].update({"phone_status":True})
+							except:
+								response[int(dt.user_id)].update({"phone_status":False})
 							res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 													"visible_status": visible_dt.visible_status}
 
 						response[int(dt.user_id)].update({"visible_data":res.values()})
 					else:
+						response[int(dt.user_id)].update({"food_status":False})
+						response[int(dt.user_id)].update({"smoke_status":False})
+						response[int(dt.user_id)].update({"drink_status":False})
+						response[int(dt.user_id)].update({"phone_status":False})
 						response[int(dt.user_id)].update({"visible_data": [{
 																		"visible_status":"Pending",
 																		'key_name':None
@@ -1616,13 +1948,38 @@ class VisibleDataRequestView(APIView):
 					visible_obj = VisibleDataRequest.objects.filter(main_user_id=data.main_user_id,visible_user_id=user_id)
 					res = {}
 					if visible_obj:
-						print(visible_obj)
 						for visible_dt in visible_obj:
+							try:
+								visible_food = VisibleDataRequest.objects.get(main_user_id=data.main_user_id,visible_user_id=user_id,key_name='food')
+								response[data.main_user_id].update({"food_status":True})
+							except:
+								response[data.main_user_id].update({"food_status":False})
+												
+							try:
+								visible_smoke = VisibleDataRequest.objects.get(main_user_id=data.main_user_id,visible_user_id=user_id,key_name='smoke')
+								response[data.main_user_id].update({"smoke_status":True})
+							except:
+								response[data.main_user_id].update({"smoke_status":False})
+							try:
+								visible_drink = VisibleDataRequest.objects.get(main_user_id=data.main_user_id,visible_user_id=user_id,key_name='drink')
+								response[data.main_user_id].update({"drink_status":True})
+							except:
+								response[data.main_user_id].update({"drink_status":False})
+
+							try:
+								visible_phone = VisibleDataRequest.objects.get(main_user_id=data.main_user_id,visible_user_id=user_id,key_name='phone')
+								response[data.main_user_id].update({"phone_status":True})
+							except:
+								response[data.main_user_id].update({"phone_status":False})
 							res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 													"visible_status": visible_dt.visible_status}
 
 						response[data.main_user_id].update({"visible_data":res.values()})
 					else:
+						response[data.main_user_id].update({"food_status":False})
+						response[data.main_user_id].update({"smoke_status":False})
+						response[data.main_user_id].update({"drink_status":False})
+						response[data.main_user_id].update({"phone_status":False})
 						response[data.main_user_id].update({"visible_data": [{
 																		"visible_status":"Pending",
 																		'key_name':None
@@ -1682,11 +2039,37 @@ class AcceptedVisibleDataView(APIView):
 						if visible_obj:
 							print(visible_obj)
 							for visible_dt in visible_obj:
+								try:
+									visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.visible_user_id,key_name='food')
+									response[data.visible_user_id].update({"food_status":True})
+								except:
+									response[data.visible_user_id].update({"food_status":False})
+													
+								try:
+									visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.visible_user_id,key_name='smoke')
+									response[data.visible_user_id].update({"smoke_status":True})
+								except:
+									response[data.visible_user_id].update({"smoke_status":False})
+								try:
+									visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.visible_user_id,key_name='drink')
+									response[data.visible_user_id].update({"drink_status":True})
+								except:
+									response[data.visible_user_id].update({"drink_status":False})
+
+								try:
+									visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.visible_user_id,key_name='phone')
+									response[data.visible_user_id].update({"phone_status":True})
+								except:
+									response[data.visible_user_id].update({"phone_status":False})
 								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 														"visible_status": visible_dt.visible_status}
 
 							response[data.visible_user_id].update({"visible_data":res.values()})
 						else:
+							response[data.visible_user_id].update({"food_status":False})
+							response[data.visible_user_id].update({"smoke_status":False})
+							response[data.visible_user_id].update({"drink_status":False})
+							response[data.visible_user_id].update({"phone_status":False})
 							response[data.visible_user_id].update({"visible_data": [{
 																			"visible_status":"Pending",
 																			'key_name':None
@@ -1734,11 +2117,37 @@ class RejectedVisibleDataView(APIView):
 						if visible_obj:
 							print(visible_obj)
 							for visible_dt in visible_obj:
+								try:
+									visible_food = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.visible_user_id,key_name='food')
+									response[data.visible_user_id].update({"food_status":True})
+								except:
+									response[data.visible_user_id].update({"food_status":False})
+													
+								try:
+									visible_smoke = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.visible_user_id,key_name='smoke')
+									response[data.visible_user_id].update({"smoke_status":True})
+								except:
+									response[data.visible_user_id].update({"smoke_status":False})
+								try:
+									visible_drink = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.visible_user_id,key_name='drink')
+									response[data.visible_user_id].update({"drink_status":True})
+								except:
+									response[data.visible_user_id].update({"drink_status":False})
+
+								try:
+									visible_phone = VisibleDataRequest.objects.get(main_user_id=user_id,visible_user_id=data.visible_user_id,key_name='phone')
+									response[data.visible_user_id].update({"phone_status":True})
+								except:
+									response[data.visible_user_id].update({"phone_status":False})
 								res[visible_dt.key_name] = {"key_name": visible_dt.key_name,
 														"visible_status": visible_dt.visible_status}
 
 							response[data.visible_user_id].update({"visible_data":res.values()})
 						else:
+							response[data.visible_user_id].update({"food_status":False})
+							response[data.visible_user_id].update({"smoke_status":False})
+							response[data.visible_user_id].update({"drink_status":False})
+							response[data.visible_user_id].update({"phone_status":False})
 							response[data.visible_user_id].update({"visible_data": [{
 																			"visible_status":"Pending",
 																			'key_name':None
